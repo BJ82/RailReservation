@@ -55,7 +55,7 @@ public class Enquiry {
                                         }
                              );
 
-        logger.info("Step2: Obtained parent routes which have routeID as subroute");
+        logger.info("Step2: Obtained parent routes which have routeID:{} as subroute",routeID);
 
         List<TrainEnquiryResponse> trainEnquiryResponses = new ArrayList<>();
         ModelMapper modelMapper = new ModelMapper();
