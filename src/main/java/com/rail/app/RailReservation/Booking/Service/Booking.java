@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Booking {
 
-    public BookedResponse book(BookingRequest request){
+    /*public BookedResponse book(BookingRequest request){
 
     }
 
@@ -17,6 +17,6 @@ public class Booking {
 
     public boolean cancelBooking(int bookingID){
 
-    }
+    }*/
 
 }

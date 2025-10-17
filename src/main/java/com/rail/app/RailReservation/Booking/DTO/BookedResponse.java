@@ -14,7 +14,7 @@ public class BookedResponse {
 
     private int bookingID;
     private String bookingTime;
-    private String bookingDate
+    private String bookingDate;
     private int trainNo;
     private String trainName;
     private String from;

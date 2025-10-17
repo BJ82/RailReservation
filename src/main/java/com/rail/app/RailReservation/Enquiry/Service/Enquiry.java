@@ -10,7 +10,7 @@ import com.rail.app.RailReservation.Enquiry.Repository.RouteRepository;
 import com.rail.app.RailReservation.Enquiry.Repository.TrainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.modelmapper.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,29 +26,34 @@ public class Enquiry {
     @Autowired
     private TrainRepository trainRepository;
 
-    public TrainEnquiryResponse trainEnquiry(int trainNo){
+    /*public TrainEnquiryResponse trainEnquiry(int trainNo){
 
-    }
+    }*/
 
-    public TrainEnquiryResponse trainEnquiry(String src,String dest){
+    public List<TrainEnquiryResponse> trainEnquiry(String src,String dest){
 
         int routeID = routeRepository.findBySrcAndDestn(src,dest);
 
         List<RouteMapping> routeMappings = routeMappingRepository.findByChildRoutesContains(routeID);
-
         List<Integer> parentRouteIds = new ArrayList<>();
+        routeMappings.forEach(mapping-> parentRouteIds.add(mapping.getParentRoute()));
 
-        for(RouteMapping mapping:routeMappings){
-            parentRouteIds.add(mapping.getparentRoute());
-        }
-
+        List<TrainEnquiryResponse> trainEnquiryResponses = new ArrayList<>();
+        ModelMapper modelMapper = new ModelMapper();
         List<Train> availableTrains = trainRepository.findByRouteIdIn(parentRouteIds);
+        availableTrains.forEach(
 
-
-
+                (train)-> {
+                    TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(train, TrainEnquiryResponse.class);
+                    trainEnquiryResponse.setSrc(src);
+                    trainEnquiryResponse.setDest(dest);
+                    trainEnquiryResponses.add(trainEnquiryResponse);
+                }
+        );
+        return trainEnquiryResponses;
     }
 
-    public TrainEnquiryResponse trainEnquiry(String trainName){
+    /*public TrainEnquiryResponse trainEnquiry(String trainName){
 
     }
 
@@ -58,9 +63,6 @@ public class Enquiry {
 
     public SeatEnquiryResponse seatEnquiry(int trainNo, String doj){
 
-    }
+    }*/
 
-    public SeatEnquiryResponse seatEnquiry(int trainName,String doj){
-
-    }
 }
