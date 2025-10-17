@@ -1,5 +1,6 @@
 package com.rail.app.RailReservation.Enquiry.Service;
 
+import com.rail.app.RailReservation.Enquiry.Controller.EnquiryController;
 import com.rail.app.RailReservation.Enquiry.DTO.PnrEnquiryResponse;
 import com.rail.app.RailReservation.Enquiry.DTO.SeatEnquiryResponse;
 import com.rail.app.RailReservation.Enquiry.DTO.TrainEnquiryResponse;
@@ -8,6 +9,8 @@ import com.rail.app.RailReservation.Enquiry.Entity.Train;
 import com.rail.app.RailReservation.Enquiry.Repository.RouteMappingRepository;
 import com.rail.app.RailReservation.Enquiry.Repository.RouteRepository;
 import com.rail.app.RailReservation.Enquiry.Repository.TrainRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.modelmapper.*;
@@ -17,14 +20,18 @@ import java.util.List;
 @Service
 public class Enquiry {
 
-    @Autowired
-    private RouteMappingRepository routeMappingRepository;
+    private static final Logger logger = LogManager.getLogger(Enquiry.class);
+
+    private static final String COMMON_MESSAGE = "Inside Enquiry Service...";
 
     @Autowired
-    private RouteRepository routeRepository;
+    private RouteMappingRepository routeMappingRepo;
 
     @Autowired
-    private TrainRepository trainRepository;
+    private RouteRepository routeRepo;
+
+    @Autowired
+    private TrainRepository trainRepo;
 
     /*public TrainEnquiryResponse trainEnquiry(int trainNo){
 
@@ -32,21 +39,29 @@ public class Enquiry {
 
     public List<TrainEnquiryResponse> trainEnquiry(String src,String dest){
 
-
+        logger.info(COMMON_MESSAGE);
+        logger.info("Searching for trains running between {} and {}",src,dest);
         List<Integer> parentRouteIds = new ArrayList<>();
 
-        int routeID = routeRepository.findBySrcAndDestn(src,dest);
-        List<RouteMapping> routeMappings = routeMappingRepository.findByChildRoutesContains(routeID);
+        // Step1: Obtain route ID for given source and destination
+        int routeID = routeRepo.findBySrcAndDestn(src,dest);
+        logger.info("Step1: Obtained routeID:{} for source:{} and destination:{}",routeID,src,dest);
+
+        //Step2: Obtain those parent routes which have routeID as subroute
+        List<RouteMapping> routeMappings = routeMappingRepo.findByChildRoutesContains(routeID);
         routeMappings.forEach(mapping-> {
                                             int parentRoouteId = mapping.getParentRoute();
                                             parentRouteIds.add(parentRoouteId);
                                         }
                              );
 
+        logger.info("Step2: Obtained parent routes which have routeID as subroute");
 
         List<TrainEnquiryResponse> trainEnquiryResponses = new ArrayList<>();
         ModelMapper modelMapper = new ModelMapper();
-        List<Train> availableTrains = trainRepository.findByRouteIdIn(parentRouteIds);
+
+        //Step3: Obtain trains that are running on parentRouteIds
+        List<Train> availableTrains = trainRepo.findByRouteIdIn(parentRouteIds);
         availableTrains.forEach(
 
                                     (train)-> {
@@ -56,6 +71,8 @@ public class Enquiry {
                                                 trainEnquiryResponses.add(trainEnquiryResponse);
                                              }
                                 );
+
+        logger.info("Step3: Obtained trains that are running on parentRouteIds");
 
         return trainEnquiryResponses;
     }

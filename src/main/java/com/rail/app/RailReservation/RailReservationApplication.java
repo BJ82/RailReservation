@@ -12,7 +12,7 @@ public class RailReservationApplication {
 
 	public static void main(String[] args) {
 
-		logger.info("Starting Rail Reservation Appllication");
+		logger.info("Starting Rail Reservation System....");
 		SpringApplication.run(RailReservationApplication.class, args);
 	}
 
