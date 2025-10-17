@@ -32,24 +32,31 @@ public class Enquiry {
 
     public List<TrainEnquiryResponse> trainEnquiry(String src,String dest){
 
-        int routeID = routeRepository.findBySrcAndDestn(src,dest);
 
-        List<RouteMapping> routeMappings = routeMappingRepository.findByChildRoutesContains(routeID);
         List<Integer> parentRouteIds = new ArrayList<>();
-        routeMappings.forEach(mapping-> parentRouteIds.add(mapping.getParentRoute()));
+
+        int routeID = routeRepository.findBySrcAndDestn(src,dest);
+        List<RouteMapping> routeMappings = routeMappingRepository.findByChildRoutesContains(routeID);
+        routeMappings.forEach(mapping-> {
+                                            int parentRoouteId = mapping.getParentRoute();
+                                            parentRouteIds.add(parentRoouteId);
+                                        }
+                             );
+
 
         List<TrainEnquiryResponse> trainEnquiryResponses = new ArrayList<>();
         ModelMapper modelMapper = new ModelMapper();
         List<Train> availableTrains = trainRepository.findByRouteIdIn(parentRouteIds);
         availableTrains.forEach(
 
-                (train)-> {
-                    TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(train, TrainEnquiryResponse.class);
-                    trainEnquiryResponse.setSrc(src);
-                    trainEnquiryResponse.setDest(dest);
-                    trainEnquiryResponses.add(trainEnquiryResponse);
-                }
-        );
+                                    (train)-> {
+                                                TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(train, TrainEnquiryResponse.class);
+                                                trainEnquiryResponse.setSrc(src);
+                                                trainEnquiryResponse.setDest(dest);
+                                                trainEnquiryResponses.add(trainEnquiryResponse);
+                                             }
+                                );
+
         return trainEnquiryResponses;
     }
 

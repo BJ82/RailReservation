@@ -18,7 +18,7 @@ public class RouteMapping {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    int routeMappingID;
+    private int routeMappingID;
 
     private int parentRoute;
 
