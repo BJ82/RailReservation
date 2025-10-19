@@ -1,4 +1,4 @@
-package com.rail.app.RailReservation.Enquiry;
+package com.rail.app.RailReservation.Enquiry.Exception;
 
 import java.io.IOException;
 
