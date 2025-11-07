@@ -1,8 +1,11 @@
 package com.rail.app.railreservation.enquiry.service;
 
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
+import com.rail.app.railreservation.enquiry.entity.ParentChildRouteMapping;
+import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.enquiry.entity.RouteMapping;
 import com.rail.app.railreservation.common.entity.Train;
+import com.rail.app.railreservation.enquiry.repository.ParentChildRouteMappingRepository;
 import com.rail.app.railreservation.enquiry.repository.RouteMappingRepository;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.modelmapper.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class Enquiry {
@@ -22,7 +26,7 @@ public class Enquiry {
     private static final String COMMON_MESSAGE = "Inside Enquiry Service...";
 
     @Autowired
-    private RouteMappingRepository routeMappingRepo;
+    private ParentChildRouteMappingRepository routeMappingRepo;
 
     @Autowired
     private RouteRepository routeRepo;
@@ -41,11 +45,16 @@ public class Enquiry {
         List<Integer> parentRouteIds = new ArrayList<>();
 
         // Step1: Obtain route ID for given source and destination
-        int routeID = routeRepo.findBySrcAndDestn(src,dest);
+
+        Integer routeID = null;
+        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+        if (getTrainRouteId(src, dest, routes).isPresent())
+            routeID = getTrainRouteId(src, dest, routes).get();
+        
         logger.info("Step1: Obtained routeID:{} for source:{} and destination:{}",routeID,src,dest);
 
         //Step2: Obtain those parent routes which have routeID as subroute
-        List<RouteMapping> routeMappings = routeMappingRepo.findByChildRoutesContains(routeID);
+        List<ParentChildRouteMapping> routeMappings = routeMappingRepo.findByChildRoutesContains(routeID);
         routeMappings.forEach(mapping-> {
                                             int parentRoouteId = mapping.getParentRoute();
                                             parentRouteIds.add(parentRoouteId);
@@ -72,6 +81,17 @@ public class Enquiry {
         logger.info("Step3: Obtained trains that are running on parentRouteIds");
 
         return trainEnquiryResponses;
+    }
+
+    private Optional<Integer> getTrainRouteId(String src, String dest, List route){
+
+        return route.stream().filter(r->{
+            if(r.getStations().get(0).equals(src)){
+                if(r.getStations().get(r.getStations().size()-1).equals(dest))
+                    return true;
+            }
+
+        }).map(r->r.getRouteID()).findFirst();
     }
 
     /*public TrainEnquiryResponse trainEnquiry(String trainName){

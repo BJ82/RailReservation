@@ -9,12 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="RouteMapping")
+@Table(name="parentChildRouteMapping")
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class RouteMapping {
+public class ParentChildRouteMapping {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

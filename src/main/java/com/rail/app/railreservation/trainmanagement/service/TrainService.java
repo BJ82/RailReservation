@@ -13,7 +13,9 @@ import org.modelmapper.PropertyMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,26 +39,49 @@ public class TrainService {
         String src = stations.get(0);
         String dest = stations.get(stations.size() - 1);
 
-        List<Route> routes = routeRepo.findBySrcAndDestn(src,dest);
-        List<Integer> routeIDS = getTrainRouteId(src,dest,routes);
+        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+        Integer routeIDS = null;
+        if (getTrainRouteId(src, dest, routes).isPresent())
+            routeIDS = getTrainRouteId(src, dest, routes).get();
 
-        if(routeIDS.isEmpty()){
 
+        if (routeIDS == null) {
+            addRoute(stations);
         }
 
-        if(trainRepo.findByTrainNo(trnReq.getTrainNo()) == null){
+        if (trainRepo.findByTrainNo(trnReq.getTrainNo()) == null) {
 
             Train train = convertToTrain(trnReq);
             train.setRouteId(ROUTE_ID);
 
             train = trainRepo.save(train);
 
-            if(train.getTrainNo() > 0)
-                return new TrainAddResponse(train.getTrainNo(),train.getTrainName(),src,dest,true);
+            if (train.getTrainNo() > 0)
+                return new TrainAddResponse(train.getTrainNo(), train.getTrainName(), src, dest, true);
         }
 
     }
-    private List<Integer> getTrainRouteId(String src,String dest,List route){
+
+    private void addRoute(List<String> stations ){
+
+        List<String> stns = new ArrayList<>();
+        for (int i = 0; i < stations.size(); i++) {
+
+            stns.clear();
+            stns.add(stations.get(i));
+
+            for (int j = i + 1; j < stations.size(); j++) {
+
+                stns.add(stations.get(j));
+
+                Route newRoute = new Route();
+                newRoute.setStations(stns);
+                routeRepo.save(newRoute);
+            }
+
+        }
+    }
+    private Optional<Integer> getTrainRouteId(String src, String dest, List route){
 
        return route.stream().filter(r->{
                                                   if(r.getStations().get(0).equals(src)){
@@ -64,7 +89,7 @@ public class TrainService {
                                                          return true;
                                                   }
 
-                                              }).map(r->r.getRouteID()).collect(Collectors.toList());
+                                              }).map(r->r.getRouteID()).findFirst();
     }
 
     private Train convertToTrain(TrainAddRequest trnReq){
