@@ -31,17 +31,18 @@ public class TrainsController {
     public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trn){
 
         logger.info(COMMON_MESSAGE);
-        logger.info("Adding TrainAddRequest, with trainNo:{} and name:{}",trn.getTrainNo(),trn.getTrainName());
+        logger.info("Adding Train, with trainNo:{} and name:{}",trn.getTrainNo(),trn.getTrainName());
 
         TrainAddResponse trainAddResponse = new TrainAddResponse();
         trainAddResponse = ts.addTrain(trn);
-
+/*
         if(trainAddResponse.getIsTrainAdded() == false){
 
-        }
+        }*/
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+/*
     @ExceptionHandler(TrainNotAddedException.class)
     public ResponseEntity<List<TrainEnquiryResponse>> trainNotAddedExceptionHandler(TrainNotAddedException tntad){
 
@@ -51,4 +52,5 @@ public class TrainsController {
         logger.error("Exception Raised"+tntad);
         return ResponseEntity.notFound().header("Cause","TrainAddRequest Not Available Between"+src+"And"+dest).build();
     }
+*/
 }

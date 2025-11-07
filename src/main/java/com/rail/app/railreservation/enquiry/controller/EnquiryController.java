@@ -32,7 +32,7 @@ public class EnquiryController {
         List<TrainEnquiryResponse> trainsFound = enquiryService.trainEnquiry(src,dest);
         if(trainsFound.isEmpty()){
 
-            throw new TrainNotFoundException("TrainAddRequest Not Found Between",src,dest);
+            throw new TrainNotFoundException("Train's Not Found Between",src,dest);
         }
         return ResponseEntity.ok().body(trainsFound);
     }
@@ -44,7 +44,7 @@ public class EnquiryController {
         String dest = tnfex.getDest();
         logger.error(tnfex.getMessage()+src+"And"+dest);
         logger.error("Exception Raised"+tnfex);
-        return ResponseEntity.notFound().header("Cause","TrainAddRequest Not Available Between"+src+"And"+dest).build();
+        return ResponseEntity.notFound().header("Cause","Train's Not Available Between"+src+"And"+dest).build();
     }
 
 }

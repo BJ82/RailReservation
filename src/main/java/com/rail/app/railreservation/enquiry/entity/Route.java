@@ -1,9 +1,13 @@
 package com.rail.app.railreservation.enquiry.entity;
 
+import com.rail.app.railreservation.common.enums.Day;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="Route")
@@ -17,8 +21,13 @@ public class Route {
     @GeneratedValue(strategy = GenerationType.AUTO)
     int routeID;
 
-    private String src;
+    @ElementCollection
+    @CollectionTable(name = "stations" , joinColumns = @JoinColumn(name = "stn_id"))
+    @Column(name = "stn_name")
+    private List<String> stations = new ArrayList<>();
 
-    private String destn;
+    //private String src;
+
+    //private String destn;
 
 }
