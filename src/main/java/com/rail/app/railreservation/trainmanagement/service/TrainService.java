@@ -6,6 +6,7 @@ import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
+import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -33,7 +34,7 @@ public class TrainService {
 
     private Integer ROUTE_ID = null;
 
-    public TrainAddResponse addNewTrain(TrainAddRequest trnReq){
+    public TrainAddResponse addNewTrain(TrainAddRequest trnReq) throws DuplicateTrainException {
 
         List<String> stations = trnReq.getStations();
         String src = stations.get(0);
@@ -56,23 +57,22 @@ public class TrainService {
 
         //Step3: If train not found then add train
         TrainAddResponse trnAddResponse = null;
+        int trainNo = -1;
         if (trainRepo.findByTrainName(trnReq.getTrainName()) == null) {
 
             Train train = addTrain(trnReq,ROUTE_ID);
 
             if (train.getTrainNo() > 0){
 
+                trainNo = train.getTrainNo();
                 trnAddResponse = new TrainAddResponse(train.getTrainNo(), train.getTrainName(), src, dest, true);
-                logger.info("Successfully Added Train with Name:{}, TrainNo{} running between {} and {}",train.getTrainName(),train.getTrainNo(),src,dest);
+                logger.info("Successfully Added Train with Name:{}, TrainNo{} , running between {} and {}",train.getTrainName(),train.getTrainNo(),src,dest);
             }
 
         } else {
 
-            Train train = trainRepo.findByTrainName(trnReq.getTrainName());
-            trnAddResponse = new TrainAddResponse(train.getTrainNo(), train.getTrainName(), src, dest, true);
+            throw new DuplicateTrainException(trnReq.getTrainName(),trainNo);
 
-            logger.info("Train With Name: {}, TrainNo: {} Already Present!!",train.getTrainName(),train.getTrainNo());
-            logger.info("So Request To Add Train Was Ignored");
         }
         return trnAddResponse;
     }
