@@ -50,13 +50,9 @@ public class Enquiry {
 
         logger.info("Step1: Obtained routeID:{} for source:{} and destination:{}",routeID,src,dest);
 
-        //Step2: Obtain those parent routes which have routeID as subroute
-        List<ParentChildRouteMapping> routeMappings = routeMappingRepo.findByChildRoutesContains(routeID);
-        routeMappings.forEach(mapping-> {
-                                            int parentRoouteId = mapping.getParentRoute();
-                                            parentRouteIds.add(parentRoouteId);
-                                        }
-                             );
+        //Step2: Obtain routes which contain routeID as subroute
+
+        parentRouteIds.addAll(routeRepo.findBySubRoute(src,dest));
 
         logger.info("Step2: Obtained parent routes which have routeID:{} as subroute",routeID);
 
