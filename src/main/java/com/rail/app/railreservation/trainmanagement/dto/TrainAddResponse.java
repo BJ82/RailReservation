@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TrainAddResponse {
-    private int trainNo;
+    private int trainNo = -1;
     private String trainName;
     private String src;
     private String dest;

@@ -4,6 +4,7 @@ import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
+import com.rail.app.railreservation.trainmanagement.exception.TrainNotAddedException;
 import com.rail.app.railreservation.trainmanagement.service.TrainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,29 +29,27 @@ public class TrainsController {
     private TrainService ts;
 
     @PostMapping("add")
-    public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trn){
+    public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trnAddReq) throws TrainNotAddedException{
 
         logger.info(COMMON_MESSAGE);
-        logger.info("Adding Train, with trainNo:{} and name:{}",trn.getTrainNo(),trn.getTrainName());
+        logger.info("Processing Request To Add New Train, with name:{}",trnAddReq.getTrainName());
 
-        TrainAddResponse trainAddResponse = new TrainAddResponse();
-        trainAddResponse = ts.addTrain(trn);
-/*
-        if(trainAddResponse.getIsTrainAdded() == false){
+        TrainAddResponse trainAddResponse = ts.addNewTrain(trnAddReq);
 
-        }*/
+        if(trainAddResponse == null || trainAddResponse.getTrainNo() == -1){
+
+            throw new TrainNotAddedException(trnAddReq.getTrainName());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-/*
-    @ExceptionHandler(TrainNotAddedException.class)
-    public ResponseEntity<List<TrainEnquiryResponse>> trainNotAddedExceptionHandler(TrainNotAddedException tntad){
 
-        String src = tnfex.getSrc();
-        String dest = tnfex.getDest();
-        logger.error(tnfex.getMessage()+src+"And"+dest);
-        logger.error("Exception Raised"+tntad);
-        return ResponseEntity.notFound().header("Cause","TrainAddRequest Not Available Between"+src+"And"+dest).build();
+    @ExceptionHandler(TrainNotAddedException.class)
+    public ResponseEntity<TrainAddResponse> trainNotAddedExceptionHandler(TrainNotAddedException tntadex){
+
+        logger.error("!! Failed To Add Train With Name:{}",tntadex.getTrnName());
+        return ResponseEntity.internalServerError().header("Cause","Unable To Add Train With Name:"+tntadex.getTrnName()).build();
     }
-*/
+
 }

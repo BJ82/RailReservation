@@ -31,35 +31,59 @@ public class TrainService {
     @Autowired
     private RouteRepository routeRepo;
 
-    private Integer ROUTE_ID;
+    private Integer ROUTE_ID = null;
 
-    public TrainAddResponse addTrain(TrainAddRequest trnReq){
+    public TrainAddResponse addNewTrain(TrainAddRequest trnReq){
 
         List<String> stations = trnReq.getStations();
         String src = stations.get(0);
         String dest = stations.get(stations.size() - 1);
 
-        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
-        Integer routeIDS = null;
-        if (getTrainRouteId(src, dest, routes).isPresent())
-            routeIDS = getTrainRouteId(src, dest, routes).get();
+        logger.info(COMMON_MESSAGE);
+        logger.info("Adding train with name {}, running between {} and {}",trnReq.getTrainName(),src,dest);
 
+        //Step1: Resolve src and dest to RouteID
+        if (getRouteId(src, dest).isPresent())
+            ROUTE_ID = getRouteId(src, dest).get();
 
-        if (routeIDS == null) {
+        //Step2: If route for src and dest is not found then add new route
+        if (ROUTE_ID == null) {
             addRoute(stations);
+
+            if (getRouteId(src, dest).isPresent())
+                ROUTE_ID = getRouteId(src, dest).get();
         }
 
-        if (trainRepo.findByTrainNo(trnReq.getTrainNo()) == null) {
+        //Step3: If train not found then add train
+        TrainAddResponse trnAddResponse = null;
+        if (trainRepo.findByTrainName(trnReq.getTrainName()) == null) {
 
-            Train train = convertToTrain(trnReq);
-            train.setRouteId(ROUTE_ID);
+            Train train = addTrain(trnReq,ROUTE_ID);
 
-            train = trainRepo.save(train);
+            if (train.getTrainNo() > 0){
 
-            if (train.getTrainNo() > 0)
-                return new TrainAddResponse(train.getTrainNo(), train.getTrainName(), src, dest, true);
+                trnAddResponse = new TrainAddResponse(train.getTrainNo(), train.getTrainName(), src, dest, true);
+                logger.info("Successfully Added Train with Name:{}, TrainNo{} running between {} and {}",train.getTrainName(),train.getTrainNo(),src,dest);
+            }
+
+        } else {
+
+            Train train = trainRepo.findByTrainName(trnReq.getTrainName());
+            trnAddResponse = new TrainAddResponse(train.getTrainNo(), train.getTrainName(), src, dest, true);
+
+            logger.info("Train With Name: {}, TrainNo: {} Already Present!!",train.getTrainName(),train.getTrainNo());
+            logger.info("So Request To Add Train Was Ignored");
         }
+        return trnAddResponse;
+    }
 
+    private Train addTrain(TrainAddRequest trnAddReq,Integer routeID){
+
+        Train train = convertToTrain(trnAddReq);
+        train.setRouteId(routeID);
+        trainRepo.save(train);
+
+        return train;
     }
 
     private void addRoute(List<String> stations ){
@@ -81,14 +105,17 @@ public class TrainService {
 
         }
     }
-    private Optional<Integer> getTrainRouteId(String src, String dest, List route){
 
-       return route.stream().filter(r->{
+    private Optional<Integer> getRouteId(String src, String dest){
+
+        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+
+       return routes.stream().filter(r->{   boolean isTrue = false;
                                                   if(r.getStations().get(0).equals(src)){
                                                       if(r.getStations().get(r.getStations().size()-1).equals(dest))
-                                                         return true;
+                                                         isTrue = true;
                                                   }
-
+                                                  return isTrue;
                                               }).map(r->r.getRouteID()).findFirst();
     }
 
@@ -105,17 +132,4 @@ public class TrainService {
         return modelMapper.map(trnReq,Train.class);
     }
 
-    /*private ModelMapper getMapper(TrainAddRequest trnReq){
-        ModelMapper modelMapper = new ModelMapper();
-        PropertyMap<TrainAddRequest, Train> skipStationsField = new PropertyMap<TrainAddRequest, Train>() {
-            @Override
-            protected void configure() {
-
-                skip(trnReq.getStations());
-            }
-        };
-        modelMapper.addMappings(skipStationsField);
-
-        return modelMapper;
-    }*/
 }

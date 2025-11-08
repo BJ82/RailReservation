@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name="TrainAddRequest")
+@Table(name="Train")
 
 @Getter
 @Setter

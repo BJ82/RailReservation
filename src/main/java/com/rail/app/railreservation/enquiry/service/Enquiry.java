@@ -3,10 +3,8 @@ package com.rail.app.railreservation.enquiry.service;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import com.rail.app.railreservation.enquiry.entity.ParentChildRouteMapping;
 import com.rail.app.railreservation.enquiry.entity.Route;
-import com.rail.app.railreservation.enquiry.entity.RouteMapping;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.enquiry.repository.ParentChildRouteMappingRepository;
-import com.rail.app.railreservation.enquiry.repository.RouteMappingRepository;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import org.apache.logging.log4j.LogManager;
@@ -47,10 +45,9 @@ public class Enquiry {
         // Step1: Obtain route ID for given source and destination
 
         Integer routeID = null;
-        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
-        if (getTrainRouteId(src, dest, routes).isPresent())
-            routeID = getTrainRouteId(src, dest, routes).get();
-        
+        if (getRouteId(src, dest).isPresent())
+            routeID = getRouteId(src, dest).get();
+
         logger.info("Step1: Obtained routeID:{} for source:{} and destination:{}",routeID,src,dest);
 
         //Step2: Obtain those parent routes which have routeID as subroute
@@ -83,16 +80,19 @@ public class Enquiry {
         return trainEnquiryResponses;
     }
 
-    private Optional<Integer> getTrainRouteId(String src, String dest, List route){
+    private Optional<Integer> getRouteId(String src, String dest){
 
-        return route.stream().filter(r->{
+        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+
+        return routes.stream().filter(r->{   boolean isTrue = false;
             if(r.getStations().get(0).equals(src)){
                 if(r.getStations().get(r.getStations().size()-1).equals(dest))
-                    return true;
+                    isTrue = true;
             }
-
+            return isTrue;
         }).map(r->r.getRouteID()).findFirst();
     }
+
 
     /*public TrainEnquiryResponse trainEnquiry(String trainName){
 
