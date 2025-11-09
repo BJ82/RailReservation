@@ -15,6 +15,7 @@ import org.modelmapper.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class Enquiry {
@@ -52,7 +53,9 @@ public class Enquiry {
 
         //Step2: Obtain routes which contain routeID as subroute
 
-        parentRouteIds.addAll(routeRepo.findBySubRoute(src,dest));
+        parentRouteIds.addAll(getParentRoutes(src,dest));
+
+        logger.info("parentRouteIds size:{}",parentRouteIds.size());
 
         logger.info("Step2: Obtained parent routes which have routeID:{} as subroute",routeID);
 
@@ -61,6 +64,7 @@ public class Enquiry {
 
         //Step3: Obtain trains that are running on parentRouteIds
         List<Train> availableTrains = trainRepo.findByRouteIdIn(parentRouteIds);
+        logger.info("No of Trains Found:{}",availableTrains.size());
         availableTrains.forEach(
 
                                     (train)-> {
@@ -89,6 +93,19 @@ public class Enquiry {
         }).map(r->r.getRouteID()).findFirst();
     }
 
+    private List<Integer> getParentRoutes(String src, String dest){
+
+        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+
+        return routes.stream().filter(r->{   boolean isTrue = false;
+            if(r.getStations().contains(src)){
+                if(r.getStations().contains(dest))
+                    isTrue = true;
+            }
+            return isTrue;
+        }).map(r->r.getRouteID()).collect(Collectors.toList());
+
+    }
 
     /*public TrainEnquiryResponse trainEnquiry(String trainName){
 
