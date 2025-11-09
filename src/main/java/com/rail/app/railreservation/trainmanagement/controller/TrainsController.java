@@ -20,7 +20,7 @@ public class TrainsController {
 
     private static final Logger logger = LogManager.getLogger(TrainsController.class);
 
-    private static final String COMMON_MESSAGE = "Inside TrainAddRequest Controller...";
+    private static final String COMMON_MESSAGE = "Inside TrainsController...";
 
     @Autowired
     private TrainService ts;

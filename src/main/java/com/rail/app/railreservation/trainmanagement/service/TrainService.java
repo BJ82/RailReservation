@@ -44,8 +44,12 @@ public class TrainService {
         logger.info("Adding train with name {}, running between {} and {}",trnReq.getTrainName(),src,dest);
 
         //Step1: Resolve src and dest to RouteID
-        if (getRouteId(src, dest).isPresent())
+        if (getRouteId(src, dest).isPresent()){
+
             ROUTE_ID = getRouteId(src, dest).get();
+            logger.info("Step1: Resolved src and dest to RouteID:{}",ROUTE_ID);
+
+        }
 
         //Step2: If route for src and dest is not found then add new route
         if (ROUTE_ID == null) {
@@ -53,6 +57,9 @@ public class TrainService {
 
             if (getRouteId(src, dest).isPresent())
                 ROUTE_ID = getRouteId(src, dest).get();
+
+            logger.info("ROUTE_ID:{}",ROUTE_ID);
+            logger.info("Step2: Added new route for {} and {}",src,dest);
         }
 
         //Step3: If train not found then add train
@@ -60,6 +67,7 @@ public class TrainService {
         int trainNo = -1;
         if (trainRepo.findByTrainName(trnReq.getTrainName()) == null) {
 
+            logger.info("Adding Train with Name:{}",trnReq.getTrainName());
             Train train = addTrain(trnReq,ROUTE_ID);
 
             if (train.getTrainNo() > 0){
@@ -99,12 +107,13 @@ public class TrainService {
                 stns.add(stations.get(j));
 
                 Route newRoute = new Route();
-                newRoute.setStations(stns);
+                newRoute.getStations().addAll(stns);
                 routeRepo.save(newRoute);
             }
 
         }
     }
+
 
     private Optional<Integer> getRouteId(String src, String dest){
 
@@ -121,14 +130,14 @@ public class TrainService {
 
     private Train convertToTrain(TrainAddRequest trnReq){
         ModelMapper modelMapper = new ModelMapper();
-        PropertyMap<TrainAddRequest, Train> skipStationsField = new PropertyMap<TrainAddRequest, Train>() {
+        /*PropertyMap<TrainAddRequest, Train> skipStationsField = new PropertyMap<TrainAddRequest, Train>() {
             @Override
             protected void configure() {
 
                 skip(trnReq.getStations());
             }
         };
-        modelMapper.addMappings(skipStationsField);
+        modelMapper.addMappings(skipStationsField);*/
         return modelMapper.map(trnReq,Train.class);
     }
 
