@@ -24,7 +24,7 @@ public class TrainService {
 
     private static final Logger logger = LogManager.getLogger(TrainService.class);
 
-    private static final String COMMON_MESSAGE = "Inside TrainAddRequest Service...";
+    private static final String COMMON_MESSAGE = "Inside TrainService...";
 
     @Autowired
     private TrainRepository trainRepo;
@@ -67,7 +67,7 @@ public class TrainService {
         int trainNo = -1;
         if (trainRepo.findByTrainName(trnReq.getTrainName()) == null) {
 
-            logger.info("Adding Train with Name:{}",trnReq.getTrainName());
+            logger.info("Step3:Adding Train with Name:{}",trnReq.getTrainName());
             Train train = addTrain(trnReq,ROUTE_ID);
 
             if (train.getTrainNo() > 0){
