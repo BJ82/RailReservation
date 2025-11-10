@@ -1,5 +1,6 @@
 package com.rail.app.railreservation.enquiry.controller;
 
+import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.service.Enquiry;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
@@ -36,6 +37,15 @@ public class EnquiryController {
             throw new TrainNotFoundException("Train's Not Found Between",src,dest);
         }
         return ResponseEntity.ok().body(trainsFound);
+    }
+
+    @GetMapping("train/{trainNo}")
+    public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo){
+
+        logger.info(COMMON_MESSAGE);
+        logger.info("Processing request to find train with TrainNo:{}",trnNo);
+
+        return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
     }
 
     @ExceptionHandler(TrainNotFoundException.class)

@@ -12,4 +12,8 @@ public interface RouteRepository extends JpaRepository<Route,Integer> {
     @Query("SELECT DISTINCT r FROM Route r JOIN r.stations stn WHERE stn=:src OR stn=:dest")
     public List<Route> findBySrcAndDestn(@Param("src") String src, @Param("dest") String dest);
 
+    Route findByRouteID(Integer routeID);
+
+
+
 }

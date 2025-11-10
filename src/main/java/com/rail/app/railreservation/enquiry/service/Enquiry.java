@@ -1,10 +1,8 @@
 package com.rail.app.railreservation.enquiry.service;
 
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
-import com.rail.app.railreservation.enquiry.entity.ParentChildRouteMapping;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.common.entity.Train;
-import com.rail.app.railreservation.enquiry.repository.ParentChildRouteMappingRepository;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import org.apache.logging.log4j.LogManager;
@@ -25,9 +23,6 @@ public class Enquiry {
     private static final String COMMON_MESSAGE = "Inside Enquiry Service...";
 
     @Autowired
-    private ParentChildRouteMappingRepository routeMappingRepo;
-
-    @Autowired
     private RouteRepository routeRepo;
 
     @Autowired
@@ -41,18 +36,20 @@ public class Enquiry {
 
         logger.info(COMMON_MESSAGE);
         logger.info("Searching for trains running between {} and {}",src,dest);
+
         List<Integer> parentRouteIds = new ArrayList<>();
 
-        // Step1: Obtain route ID for given source and destination
 
+        // Step1: Obtain route ID for given source and destination
         Integer routeID = null;
+
         if (getRouteId(src, dest).isPresent())
             routeID = getRouteId(src, dest).get();
 
         logger.info("Step1: Obtained routeID:{} for source:{} and destination:{}",routeID,src,dest);
 
-        //Step2: Obtain routes which contain routeID as subroute
 
+        //Step2: Obtain routes which contain routeID as subroute
         parentRouteIds.addAll(getParentRoutes(src,dest));
 
         logger.info("parentRouteIds size:{}",parentRouteIds.size());
@@ -106,6 +103,25 @@ public class Enquiry {
         }).map(r->r.getRouteID()).collect(Collectors.toList());
 
     }
+
+    public TrainEnquiryResponse trainEnquiry(Integer trainNo){
+
+        ModelMapper modelMapper = new ModelMapper();
+        Train trn = trainRepo.findByTrainNo(trainNo);
+        TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(trn, TrainEnquiryResponse.class);
+
+        Integer routeID = trn.getRouteId();
+        List<String> stations = routeRepo.findByRouteID(routeID).getStations();
+
+        String src = stations.getFirst();
+        trainEnquiryResponse.setSrc(src);
+
+        String dest = stations.getLast();
+        trainEnquiryResponse.setDest(dest);
+
+        return trainEnquiryResponse;
+    }
+
 
     /*public TrainEnquiryResponse trainEnquiry(String trainName){
 
