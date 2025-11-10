@@ -5,6 +5,7 @@ import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,12 +105,20 @@ public class Enquiry {
 
     }
 
-    public TrainEnquiryResponse trainEnquiry(Integer trainNo){
+    public TrainEnquiryResponse trainEnquiry(Integer trainNo) throws TrainNotFoundException{
+
+        logger.info(COMMON_MESSAGE);
+        logger.info("Searching For Train With TrainNo:{}",trainNo);
 
         ModelMapper modelMapper = new ModelMapper();
         Train trn = trainRepo.findByTrainNo(trainNo);
-        TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(trn, TrainEnquiryResponse.class);
 
+        if(trn == null){
+
+            throw new TrainNotFoundException("No Train Found With TrainNo:"+trainNo,trainNo);
+        }
+
+        TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(trn, TrainEnquiryResponse.class);
         Integer routeID = trn.getRouteId();
         List<String> stations = routeRepo.findByRouteID(routeID).getStations();
 

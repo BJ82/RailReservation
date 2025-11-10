@@ -34,13 +34,13 @@ public class EnquiryController {
         List<TrainEnquiryResponse> trainsFound = enquiryService.trainEnquiry(src,dest);
         if(trainsFound.isEmpty()){
 
-            throw new TrainNotFoundException("Train's Not Found Between",src,dest);
+            throw new TrainNotFoundException("Train's Not Found Between "+src+" And "+dest,src,dest);
         }
         return ResponseEntity.ok().body(trainsFound);
     }
 
     @GetMapping("train/{trainNo}")
-    public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo){
+    public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo) throws TrainNotFoundException{
 
         logger.info(COMMON_MESSAGE);
         logger.info("Processing request to find train with TrainNo:{}",trnNo);
@@ -51,11 +51,9 @@ public class EnquiryController {
     @ExceptionHandler(TrainNotFoundException.class)
     public ResponseEntity<String> trainNotFoundExceptionHandler(TrainNotFoundException tnfex){
 
-        String src = tnfex.getSrc();
-        String dest = tnfex.getDest();
-        logger.error(tnfex.getMessage()+src+"And"+dest);
+        logger.error(tnfex.getMessage());
         logger.error("Exception Raised"+tnfex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause","Train's Not Available Between"+src+"And"+dest).body("TrainNotFoundException");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",tnfex.getMessage()).body(tnfex.getMessage());
     }
 
 }
