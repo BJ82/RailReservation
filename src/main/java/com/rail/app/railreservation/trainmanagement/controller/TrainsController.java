@@ -1,9 +1,8 @@
 package com.rail.app.railreservation.trainmanagement.controller;
 
-import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
-import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
+import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.service.TrainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,8 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
+import java.net.URI;
 
 @RestController
 @RequestMapping("train/")
@@ -20,35 +20,35 @@ public class TrainsController {
 
     private static final Logger logger = LogManager.getLogger(TrainsController.class);
 
-    private static final String COMMON_MESSAGE = "Inside TrainAddRequest Controller...";
-
-    private static final String TRAIN_ADDED = "TrainAddRequest Added..";
+    private static final String COMMON_MESSAGE = "Inside TrainsController...";
 
     @Autowired
     private TrainService ts;
 
     @PostMapping("add")
-    public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trn){
+    public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trnAddReq) throws DuplicateTrainException {
 
         logger.info(COMMON_MESSAGE);
-        logger.info("Adding TrainAddRequest, with trainNo:{} and name:{}",trn.getTrainNo(),trn.getTrainName());
+        logger.info("Processing Request To Add New Train, with name:{}",trnAddReq.getTrainName());
 
-        TrainAddResponse trainAddResponse = new TrainAddResponse();
-        trainAddResponse = ts.addTrain(trn);
+        TrainAddResponse trainAddResponse = ts.addNewTrain(trnAddReq);
 
-        if(trainAddResponse.getIsTrainAdded() == false){
+        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                .path("/{id}")
+                .buildAndExpand(trainAddResponse.getTrainNo())
+                .toUri();
 
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.created(location).body(trainAddResponse);
     }
 
-    @ExceptionHandler(TrainNotAddedException.class)
-    public ResponseEntity<List<TrainEnquiryResponse>> trainNotAddedExceptionHandler(TrainNotAddedException tntad){
 
-        String src = tnfex.getSrc();
-        String dest = tnfex.getDest();
-        logger.error(tnfex.getMessage()+src+"And"+dest);
-        logger.error("Exception Raised"+tntad);
-        return ResponseEntity.notFound().header("Cause","TrainAddRequest Not Available Between"+src+"And"+dest).build();
+    @ExceptionHandler(DuplicateTrainException.class)
+    public ResponseEntity<String> duplicateTrainExceptionHandler(DuplicateTrainException dupltrnex){
+
+       logger.error(dupltrnex.getMessage());
+       logger.error("Train With Name: {} and TrainNo: {} Already Present!!",dupltrnex.getTrnName(),dupltrnex.getTrnNo());
+       return  ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause","Adding Duplicate Train").body("DuplicateTrainException");
+
     }
+
 }

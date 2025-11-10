@@ -14,10 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 public class TrainAddRequest {
 
-    private int trainNo;
+    //private int trainNo;
     private List<String> stations;
-    //private String src;
-    //private String dest;
     private List<Day> runOnDays;
     private LocalTime deptTime;
     private LocalTime arrvTime;

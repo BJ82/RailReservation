@@ -11,10 +11,12 @@ import java.util.List;
 public interface TrainRepository extends JpaRepository<Train,Integer> {
 
     List<Train> findByRouteIdIn(List<Integer> parentRouteIds);
+    Train findByTrainNo(int trainNo);
+    Train findByTrainName(String name);
 
    /* @Modifying
     @Transactional
     @Query(value = "")
-
     boolean addTrain();*/
+
 }

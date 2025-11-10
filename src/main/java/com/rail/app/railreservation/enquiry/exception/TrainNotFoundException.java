@@ -5,6 +5,7 @@ import java.io.IOException;
 public class TrainNotFoundException extends IOException {
     private String src;
     private String dest;
+    private int trainNo;
 
     public String getSrc() {
         return src;
@@ -19,6 +20,11 @@ public class TrainNotFoundException extends IOException {
         super(message);
         this.src = src;
         this.dest = dest;
+    }
+
+    public TrainNotFoundException(String message,int trainNo){
+        super(message);
+        this.trainNo = trainNo;
     }
 
 }

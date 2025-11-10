@@ -1,10 +1,12 @@
 package com.rail.app.railreservation.enquiry.controller;
 
+import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.service.Enquiry;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
@@ -32,19 +34,26 @@ public class EnquiryController {
         List<TrainEnquiryResponse> trainsFound = enquiryService.trainEnquiry(src,dest);
         if(trainsFound.isEmpty()){
 
-            throw new TrainNotFoundException("TrainAddRequest Not Found Between",src,dest);
+            throw new TrainNotFoundException("Train's Not Found Between "+src+" And "+dest,src,dest);
         }
         return ResponseEntity.ok().body(trainsFound);
     }
 
-    @ExceptionHandler(TrainNotFoundException.class)
-    public ResponseEntity<List<TrainEnquiryResponse>> trainNotFoundExceptionHandler(TrainNotFoundException tnfex){
+    @GetMapping("train/{trainNo}")
+    public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo) throws TrainNotFoundException{
 
-        String src = tnfex.getSrc();
-        String dest = tnfex.getDest();
-        logger.error(tnfex.getMessage()+src+"And"+dest);
+        logger.info(COMMON_MESSAGE);
+        logger.info("Processing request to find train with TrainNo:{}",trnNo);
+
+        return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
+    }
+
+    @ExceptionHandler(TrainNotFoundException.class)
+    public ResponseEntity<String> trainNotFoundExceptionHandler(TrainNotFoundException tnfex){
+
+        logger.error(tnfex.getMessage());
         logger.error("Exception Raised"+tnfex);
-        return ResponseEntity.notFound().header("Cause","TrainAddRequest Not Available Between"+src+"And"+dest).build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",tnfex.getMessage()).body(tnfex.getMessage());
     }
 
 }
