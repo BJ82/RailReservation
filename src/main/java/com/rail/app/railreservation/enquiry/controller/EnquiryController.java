@@ -1,6 +1,7 @@
 package com.rail.app.railreservation.enquiry.controller;
 
 import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.service.Enquiry;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
@@ -21,8 +22,11 @@ public class EnquiryController {
 
     private static final String COMMON_MESSAGE = "Inside Enquiry Controller...";
 
-    @Autowired
     private Enquiry enquiryService;
+
+    public EnquiryController(Enquiry enquiryService) {
+        this.enquiryService = enquiryService;
+    }
 
     @GetMapping("train")
     public ResponseEntity<List<TrainEnquiryResponse>> trainEnquiryByStation(@RequestParam String src,@RequestParam String dest)
@@ -31,16 +35,11 @@ public class EnquiryController {
         logger.info(COMMON_MESSAGE);
         logger.info("Processing request to find all trains between {} and {}",src,dest);
 
-        List<TrainEnquiryResponse> trainsFound = enquiryService.trainEnquiry(src,dest);
-        if(trainsFound.isEmpty()){
-
-            throw new TrainNotFoundException("Train's Not Found Between "+src+" And "+dest,src,dest);
-        }
-        return ResponseEntity.ok().body(trainsFound);
+        return ResponseEntity.ok().body(enquiryService.trainEnquiry(src,dest));
     }
 
     @GetMapping("train/{trainNo}")
-    public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo) throws TrainNotFoundException{
+    public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo) throws TrainNotFoundException, RouteNotFoundException {
 
         logger.info(COMMON_MESSAGE);
         logger.info("Processing request to find train with TrainNo:{}",trnNo);
@@ -49,11 +48,18 @@ public class EnquiryController {
     }
 
     @ExceptionHandler(TrainNotFoundException.class)
-    public ResponseEntity<String> trainNotFoundExceptionHandler(TrainNotFoundException tnfex){
+    public ResponseEntity<String> trainNotFoundHandler(TrainNotFoundException tnfex){
 
         logger.error(tnfex.getMessage());
         logger.error("Exception Raised"+tnfex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",tnfex.getMessage()).body(tnfex.getMessage());
+    }
+
+    @ExceptionHandler(RouteNotFoundException.class)
+    public ResponseEntity<String> routeNotFoundHandler(RouteNotFoundException routnf){
+
+        logger.error(routnf.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",routnf.getMessage()).body(routnf.getMessage());
     }
 
 }
