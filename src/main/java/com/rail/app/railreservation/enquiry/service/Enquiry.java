@@ -22,7 +22,7 @@ public class Enquiry {
 
     private static final Logger logger = LogManager.getLogger(Enquiry.class);
 
-    private static final String COMMON_MESSAGE = "Inside Enquiry Service...";
+    private static final String INSIDE_ENQUIRY_SERVICE = "Inside Enquiry Service...";
 
     private RouteRepository routeRepo;
     private TrainRepository trainRepo;
@@ -39,7 +39,7 @@ public class Enquiry {
 
     public List<TrainEnquiryResponse> trainEnquiry(String src,String dest) throws TrainNotFoundException {
 
-        logger.info(COMMON_MESSAGE);
+        logger.info(INSIDE_ENQUIRY_SERVICE);
         logger.info("Searching for trains running between {} and {}",src,dest);
 
         List<Integer> parentRouteIds = new ArrayList<>();

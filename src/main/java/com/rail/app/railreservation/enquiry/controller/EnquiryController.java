@@ -20,7 +20,7 @@ public class EnquiryController {
 
     private static final Logger logger = LogManager.getLogger(EnquiryController.class);
 
-    private static final String COMMON_MESSAGE = "Inside Enquiry Controller...";
+    private static final String INSIDE_ENQUIRY_CONTROLLER = "Inside Enquiry Controller...";
 
     private Enquiry enquiryService;
 
@@ -32,7 +32,7 @@ public class EnquiryController {
     public ResponseEntity<List<TrainEnquiryResponse>> trainEnquiryByStation(@RequestParam String src,@RequestParam String dest)
             throws TrainNotFoundException {
 
-        logger.info(COMMON_MESSAGE);
+        logger.info(INSIDE_ENQUIRY_CONTROLLER);
         logger.info("Processing request to find all trains between {} and {}",src,dest);
 
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(src,dest));

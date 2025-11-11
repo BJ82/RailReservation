@@ -20,7 +20,7 @@ public class TrainsController {
 
     private static final Logger logger = LogManager.getLogger(TrainsController.class);
 
-    private static final String COMMON_MESSAGE = "Inside TrainsController...";
+    private static final String INSIDE_TRAIN_CONTROLLER = "Inside Trains Controller...";
 
     private TrainService ts;
 
@@ -32,7 +32,7 @@ public class TrainsController {
     @PostMapping("add")
     public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trnAddReq) throws DuplicateTrainException {
 
-        logger.info(COMMON_MESSAGE);
+        logger.info(INSIDE_TRAIN_CONTROLLER);
         logger.info("Processing Request To Add New Train, with name:{}",trnAddReq.getTrainName());
 
         TrainAddResponse trainAddResponse = ts.addNewTrain(trnAddReq);
