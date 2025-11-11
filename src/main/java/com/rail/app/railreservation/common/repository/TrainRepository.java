@@ -7,16 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TrainRepository extends JpaRepository<Train,Integer> {
 
     List<Train> findByRouteIdIn(List<Integer> parentRouteIds);
-    Train findByTrainNo(int trainNo);
-    Train findByTrainName(String name);
-
-   /* @Modifying
-    @Transactional
-    @Query(value = "")
-    boolean addTrain();*/
+    Optional<Train> findByTrainNo(int trainNo);
+    Optional<Train> findByTrainName(String name);
 
 }

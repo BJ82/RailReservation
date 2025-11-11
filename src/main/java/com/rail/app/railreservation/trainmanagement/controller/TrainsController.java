@@ -22,8 +22,12 @@ public class TrainsController {
 
     private static final String COMMON_MESSAGE = "Inside TrainsController...";
 
-    @Autowired
     private TrainService ts;
+
+    public TrainsController(TrainService ts) {
+        this.ts = ts;
+    }
+
 
     @PostMapping("add")
     public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trnAddReq) throws DuplicateTrainException {

@@ -26,11 +26,14 @@ public class TrainService {
 
     private static final String COMMON_MESSAGE = "Inside TrainService...";
 
-    @Autowired
     private TrainRepository trainRepo;
 
-    @Autowired
     private RouteRepository routeRepo;
+
+    public TrainService(TrainRepository trainRepo, RouteRepository routeRepo) {
+        this.trainRepo = trainRepo;
+        this.routeRepo = routeRepo;
+    }
 
     private Integer ROUTE_ID = null;
 
@@ -65,7 +68,7 @@ public class TrainService {
         //Step3: If train not found then add train
         TrainAddResponse trnAddResponse = null;
         int trainNo = -1;
-        if (trainRepo.findByTrainName(trnReq.getTrainName()) == null) {
+        if (trainRepo.findByTrainName(trnReq.getTrainName()).isEmpty()) {
 
             logger.info("Step3:Adding Train with Name:{}",trnReq.getTrainName());
             Train train = addTrain(trnReq,ROUTE_ID);

@@ -5,6 +5,7 @@ import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,17 +24,20 @@ public class Enquiry {
 
     private static final String COMMON_MESSAGE = "Inside Enquiry Service...";
 
-    @Autowired
     private RouteRepository routeRepo;
-
-    @Autowired
     private TrainRepository trainRepo;
+
+    public Enquiry(RouteRepository routeRepo, TrainRepository trainRepo) {
+        this.routeRepo = routeRepo;
+        this.trainRepo = trainRepo;
+    }
+
 
     /*public TrainEnquiryResponse trainEnquiry(int trainNo){
 
     }*/
 
-    public List<TrainEnquiryResponse> trainEnquiry(String src,String dest){
+    public List<TrainEnquiryResponse> trainEnquiry(String src,String dest) throws TrainNotFoundException {
 
         logger.info(COMMON_MESSAGE);
         logger.info("Searching for trains running between {} and {}",src,dest);
@@ -62,7 +66,11 @@ public class Enquiry {
 
         //Step3: Obtain trains that are running on parentRouteIds
         List<Train> availableTrains = trainRepo.findByRouteIdIn(parentRouteIds);
-        logger.info("No of Trains Found:{}",availableTrains.size());
+
+        if(availableTrains.isEmpty())
+            throw new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest);
+
+        logger.info("Number Of Available Trains:{}",availableTrains.size());
         availableTrains.forEach(
 
                                     (train)-> {
@@ -77,6 +85,29 @@ public class Enquiry {
 
         return trainEnquiryResponses;
     }
+
+    public TrainEnquiryResponse trainEnquiry(Integer trainNo) throws TrainNotFoundException, RouteNotFoundException {
+
+        logger.info(COMMON_MESSAGE);
+        logger.info("Searching For Train With TrainNo:{}", trainNo);
+
+
+        Train trn = trainRepo.findByTrainNo(trainNo).
+                orElseThrow(() -> new TrainNotFoundException("Train Not Found For TrainNo: " + trainNo, trainNo));
+
+
+        Integer routeID = trn.getRouteId();
+
+        Route route= routeRepo.findByRouteID(routeID).orElseThrow(()->new RouteNotFoundException("Route Not Found For RouteID: "+routeID,routeID));
+        List<String> stations = route.getStations();
+
+        TrainEnquiryResponse trainEnquiryResponse = new ModelMapper().map(trn, TrainEnquiryResponse.class);
+        trainEnquiryResponse.setSrc(stations.getFirst());
+        trainEnquiryResponse.setDest(stations.getLast());
+
+        return trainEnquiryResponse;
+    }
+
 
     private Optional<Integer> getRouteId(String src, String dest){
 
@@ -105,31 +136,6 @@ public class Enquiry {
 
     }
 
-    public TrainEnquiryResponse trainEnquiry(Integer trainNo) throws TrainNotFoundException{
-
-        logger.info(COMMON_MESSAGE);
-        logger.info("Searching For Train With TrainNo:{}",trainNo);
-
-        ModelMapper modelMapper = new ModelMapper();
-        Train trn = trainRepo.findByTrainNo(trainNo);
-
-        if(trn == null){
-
-            throw new TrainNotFoundException("No Train Found With TrainNo:"+trainNo,trainNo);
-        }
-
-        TrainEnquiryResponse trainEnquiryResponse = modelMapper.map(trn, TrainEnquiryResponse.class);
-        Integer routeID = trn.getRouteId();
-        List<String> stations = routeRepo.findByRouteID(routeID).getStations();
-
-        String src = stations.getFirst();
-        trainEnquiryResponse.setSrc(src);
-
-        String dest = stations.getLast();
-        trainEnquiryResponse.setDest(dest);
-
-        return trainEnquiryResponse;
-    }
 
 
     /*public TrainEnquiryResponse trainEnquiry(String trainName){
