@@ -1,5 +1,8 @@
 package com.rail.app.railreservation.trainmanagement.controller;
 
+import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
+import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.trainmanagement.dto.AllTrainResponse;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
@@ -45,6 +48,15 @@ public class TrainsController {
         return ResponseEntity.created(location).body(trainAddResponse);
     }
 
+    @GetMapping("all")
+    public ResponseEntity<AllTrainResponse> getAllTrains() throws TrainNotFoundException, RouteNotFoundException {
+
+        logger.info(INSIDE_TRAIN_CONTROLLER);
+        logger.info("Processing Request To Return All Trains..");
+
+        return ResponseEntity.ok().body(ts.getAllTrains());
+
+    }
 
     @ExceptionHandler(DuplicateTrainException.class)
     public ResponseEntity<String> duplicateTrainExceptionHandler(DuplicateTrainException dupltrnex){
