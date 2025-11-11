@@ -24,7 +24,7 @@ public class TrainService {
 
     private static final Logger logger = LogManager.getLogger(TrainService.class);
 
-    private static final String COMMON_MESSAGE = "Inside TrainService...";
+    private static final String INSIDE_TRAIN_SERVICE = "Inside Train Service...";
 
     private TrainRepository trainRepo;
 
@@ -43,7 +43,7 @@ public class TrainService {
         String src = stations.get(0);
         String dest = stations.get(stations.size() - 1);
 
-        logger.info(COMMON_MESSAGE);
+        logger.info(INSIDE_TRAIN_SERVICE);
         logger.info("Adding train with name {}, running between {} and {}",trnReq.getTrainName(),src,dest);
 
         //Step1: Resolve src and dest to RouteID
