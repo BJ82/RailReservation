@@ -42,6 +42,8 @@ public class TrainService {
 
     private Integer ROUTE_ID = null;
 
+    private ModelMapper mapper = new ModelMapper();
+
     public TrainAddResponse addNewTrain(TrainAddRequest trnReq) throws DuplicateTrainException {
 
         List<String> stations = trnReq.getStations();
@@ -95,7 +97,7 @@ public class TrainService {
 
     private Train addTrain(TrainAddRequest trnAddReq,Integer routeID){
 
-        Train train = convertToTrain(trnAddReq);
+        Train train = mapper.map(trnAddReq,Train.class);
         train.setRouteId(routeID);
         trainRepo.save(train);
 
@@ -136,19 +138,6 @@ public class TrainService {
                                               }).map(r->r.getRouteID()).findFirst();
     }
 
-    private Train convertToTrain(TrainAddRequest trnReq){
-        ModelMapper modelMapper = new ModelMapper();
-        /*PropertyMap<TrainAddRequest, Train> skipStationsField = new PropertyMap<TrainAddRequest, Train>() {
-            @Override
-            protected void configure() {
-
-                skip(trnReq.getStations());
-            }
-        };
-        modelMapper.addMappings(skipStationsField);*/
-        return modelMapper.map(trnReq,Train.class);
-    }
-
     public AllTrainResponse getAllTrains() throws TrainNotFoundException,RouteNotFoundException {
 
         logger.info(INSIDE_TRAIN_SERVICE);
@@ -162,7 +151,6 @@ public class TrainService {
         Route route;
         TrainInfo trnInfo;
         AllTrainResponse allTrainResponse = new AllTrainResponse();
-        ModelMapper mapper = new ModelMapper();
 
         for(Train trn:trns){
 
@@ -171,7 +159,7 @@ public class TrainService {
             trnInfo.getStns().addAll(route.getStations());
             allTrainResponse.getAllTrains().add(trnInfo);
         }
+
         return allTrainResponse;
     }
-
 }
