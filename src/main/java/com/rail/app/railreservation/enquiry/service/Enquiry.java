@@ -88,7 +88,7 @@ public class Enquiry {
 
     public TrainEnquiryResponse trainEnquiry(Integer trainNo) throws TrainNotFoundException, RouteNotFoundException {
 
-        logger.info(COMMON_MESSAGE);
+        logger.info(INSIDE_ENQUIRY_SERVICE);
         logger.info("Searching For Train With TrainNo:{}", trainNo);
 
 

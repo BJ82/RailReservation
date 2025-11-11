@@ -41,7 +41,7 @@ public class EnquiryController {
     @GetMapping("train/{trainNo}")
     public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo) throws TrainNotFoundException, RouteNotFoundException {
 
-        logger.info(COMMON_MESSAGE);
+        logger.info(INSIDE_ENQUIRY_CONTROLLER);
         logger.info("Processing request to find train with TrainNo:{}",trnNo);
 
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
