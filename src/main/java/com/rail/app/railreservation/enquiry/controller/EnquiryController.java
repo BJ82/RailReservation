@@ -47,19 +47,4 @@ public class EnquiryController {
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
     }
 
-   /* @ExceptionHandler(TrainNotFoundException.class)
-    public ResponseEntity<String> trainNotFoundHandler(TrainNotFoundException tnfex){
-
-        logger.error(tnfex.getMessage());
-        logger.error("Exception Raised"+tnfex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",tnfex.getMessage()).body(tnfex.getMessage());
-    }
-
-    @ExceptionHandler(RouteNotFoundException.class)
-    public ResponseEntity<String> routeNotFoundHandler(RouteNotFoundException routnf){
-
-        logger.error(routnf.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",routnf.getMessage()).body(routnf.getMessage());
-    }*/
-
 }

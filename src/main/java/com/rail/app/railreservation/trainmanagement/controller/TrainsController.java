@@ -56,13 +56,4 @@ public class TrainsController {
 
     }
 
-   /* @ExceptionHandler(DuplicateTrainException.class)
-    public ResponseEntity<String> duplicateTrainExceptionHandler(DuplicateTrainException dupltrnex){
-
-       logger.error(dupltrnex.getMessage());
-       logger.error("Train With Name: {} and TrainNo: {} Already Present!!",dupltrnex.getTrnName(),dupltrnex.getTrnNo());
-       return  ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause","Adding Duplicate Train").body("DuplicateTrainException");
-
-    }*/
-
 }
