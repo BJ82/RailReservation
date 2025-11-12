@@ -47,7 +47,7 @@ public class EnquiryController {
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
     }
 
-    @ExceptionHandler(TrainNotFoundException.class)
+   /* @ExceptionHandler(TrainNotFoundException.class)
     public ResponseEntity<String> trainNotFoundHandler(TrainNotFoundException tnfex){
 
         logger.error(tnfex.getMessage());
@@ -60,6 +60,6 @@ public class EnquiryController {
 
         logger.error(routnf.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",routnf.getMessage()).body(routnf.getMessage());
-    }
+    }*/
 
 }

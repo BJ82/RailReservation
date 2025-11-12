@@ -89,6 +89,7 @@ public class TrainService {
 
         } else {
 
+            trainNo = trainRepo.findByTrainName(trnReq.getTrainName()).get().getTrainNo();
             throw new DuplicateTrainException(trnReq.getTrainName(),trainNo);
 
         }
