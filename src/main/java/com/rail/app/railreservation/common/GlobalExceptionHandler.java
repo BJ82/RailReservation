@@ -4,6 +4,8 @@ import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.controller.TrainsController;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableWithoutTrainException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -38,5 +40,19 @@ public class GlobalExceptionHandler {
 
         logger.error(routnf.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",routnf.getMessage()).body(routnf.getMessage());
+    }
+
+    @ExceptionHandler(TimeTableWithoutTrainException.class)
+    public ResponseEntity<String> timeTableWithoutTrainHandler(TimeTableWithoutTrainException timtblwithoutrnex){
+
+        logger.error(timtblwithoutrnex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause",timtblwithoutrnex.getMessage()).body(timtblwithoutrnex.getMessage());
+    }
+
+    @ExceptionHandler(TimeTableAddFailException.class)
+    public ResponseEntity<String> timeTableWithoutTrainHandler(TimeTableAddFailException tmtbladdfail ){
+
+        logger.error(tmtbladdfail.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).header("Cause",tmtbladdfail.getMessage()).body(tmtbladdfail.getMessage());
     }
 }
