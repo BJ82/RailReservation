@@ -1,6 +1,7 @@
 package com.rail.app.railreservation.booking.dto;
 
 
+import com.rail.app.railreservation.common.enums.JourneyClass;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ public class BookingRequest {
     private String trainName;
     private String from;
     private String to;
-    private String journeyClass;
+    private JourneyClass journeyClass;
     private String doj;
     private List<Passenger> passengerList = new ArrayList<>();
 }
