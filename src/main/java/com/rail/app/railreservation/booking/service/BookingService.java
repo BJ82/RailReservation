@@ -7,6 +7,7 @@ import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.trainmanagement.repository.TimeTableRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -25,11 +26,15 @@ public class BookingService {
     private static final String INSIDE_BOOKING_SERVICE = "Inside Booking Service...";
 
     private TrainRepository trainRepo;
+
     private RouteRepository routeRepo;
 
-    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo) {
+    private TimeTableRepository timeTableRepo;
+
+    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,TimeTableRepository timeTableRepo) {
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
+        this.timeTableRepo = timeTableRepo;
     }
 
     ModelMapper mapper = new ModelMapper();
