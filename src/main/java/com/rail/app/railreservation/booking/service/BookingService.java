@@ -1,15 +1,17 @@
 package com.rail.app.railreservation.booking.service;
 
+import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.dto.BookedResponse;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
+import com.rail.app.railreservation.booking.dto.Passenger;
+import com.rail.app.railreservation.booking.entity.Booking;
+import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCounterRepository;
 import com.rail.app.railreservation.common.entity.Train;
-import com.rail.app.railreservation.common.enums.JourneyClass;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.enquiry.entity.Route;
-import com.rail.app.railreservation.trainmanagement.repository.TimeTableRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -30,14 +32,15 @@ public class BookingService {
 
     private RouteRepository routeRepo;
 
-    private TimeTableRepository timeTableRepo;
-
     private SeatCounterRepository seatCountRepo;
 
-    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,TimeTableRepository timeTableRepo) {
+    private BookingRepository bookingRepo;
+
+    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,SeatCounterRepository seatCountRepo,BookingRepository bookingRepo) {
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
-        this.timeTableRepo = timeTableRepo;
+        this.seatCountRepo = seatCountRepo;
+        this.bookingRepo = bookingRepo;
     }
 
     ModelMapper mapper = new ModelMapper();
@@ -63,6 +66,12 @@ public class BookingService {
         routeIDS.addAll(childRoutes);
 
         seatCountRepo.updateSeatCount(request.getTrainNo(),routeIDS,request.getPassengers().size(), LocalDate.parse(request.getDoj()),journeyClass.name().toLowerCase());
+
+        for(Passenger psngr:request.getPassengers()){
+
+            bookingRepo.save(new Booking(psngr.getName(),psngr.getAge(),psngr.getSex(),request.getTrainNo(),request.getFrom(),request.getTo(),request.getJourneyClass(), BookingStatus.CONFIRMED,));
+        }
+
 
     }
 
