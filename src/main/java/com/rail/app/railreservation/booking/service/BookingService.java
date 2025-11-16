@@ -2,7 +2,9 @@ package com.rail.app.railreservation.booking.service;
 
 import com.rail.app.railreservation.booking.dto.BookedResponse;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
+import com.rail.app.railreservation.booking.repository.SeatCounterRepository;
 import com.rail.app.railreservation.common.entity.Train;
+import com.rail.app.railreservation.common.enums.JourneyClass;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
@@ -13,9 +15,8 @@ import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +32,8 @@ public class BookingService {
 
     private TimeTableRepository timeTableRepo;
 
+    private SeatCounterRepository seatCountRepo;
+
     public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,TimeTableRepository timeTableRepo) {
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
@@ -41,12 +44,55 @@ public class BookingService {
 
     public BookedResponse book(BookingRequest request) throws InvalidBookingException{
 
-        Train trn = trainRepo.findByTrainNo(request.getTrainNo()).orElseThrow(()->new InvalidBookingException("Booking Not Allowed On Non Existent Train"));
+        Train trn = trainRepo.findByTrainNo(request.getTrainNo())
+                .orElseThrow(() -> new InvalidBookingException("Booking Not Allowed On Non Existent Train"));
 
-        List<Integer> parentRoutes = getParentRoutes(request.getFrom(),request.getTo());
+        isValidRoute(request.getFrom(), request.getTo(), trn)
+                .orElseThrow(() -> new InvalidBookingException("TrainNo:" + request.getTrainNo() + " Not Running " + "Between " + request.getFrom() + "And " + request.getTo()));
 
-        List<Integer> childRoutes = getChildRoutes(request.getFrom(),request.getTo());
+        //isBookingOpen();
+        //isSeatAvailable();
 
+        List<Integer> routeIDS = new ArrayList<>();
+        routeIDS.add(trn.getRouteId());
+
+        List<Integer> parentRoutes = getParentRoutes(request.getFrom(), request.getTo());
+        routeIDS.addAll(parentRoutes);
+
+        List<Integer> childRoutes = getChildRoutes(request.getFrom(), request.getTo());
+        routeIDS.addAll(childRoutes);
+
+        seatCountRepo.updateSeatCount(request.getTrainNo(),routeIDS,request.getPassengers().size(), LocalDate.parse(request.getDoj()),journeyClass.name().toLowerCase());
+
+    }
+
+    private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
+
+            boolean isRouteValid = false;
+
+            Route route = routeRepo.findByRouteID(trn.getRouteID()).get();
+
+            List<String> stns = route.getStations();
+
+            if(stns.contains(jurnyStartStn) && stns.contains(jurnyEndStn)){
+                if(stns.indexOf(jurnyStartStn) < stns.indexOf(jurnyEndStn)){
+                    isRouteValid = true;
+                }
+            }
+
+           return toOptional(isRouteValid);
+    }
+
+    private Optional<Boolean> toOptional(boolean b){
+
+        Optional asOptional;
+
+        if(!b)
+            asOptional = Optional.empty();
+
+        asOptional = Optional.of(b);
+
+        return asOptional;
     }
 
     private List<Integer> getParentRoutes(String src, String dest){
@@ -101,7 +147,8 @@ public class BookingService {
         }).map(r->r.getRouteID()).findFirst();
     }
 
-    /*public BookedResponse bookTatkal(BookingRequest request){
+
+    /*public BookedResponse; bookTatkal(BookingRequest request){
 
     }
 

@@ -20,5 +20,5 @@ public class BookingRequest {
     private String to;
     private JourneyClass journeyClass;
     private String doj;
-    private List<Passenger> passengerList = new ArrayList<>();
+    private List<Passenger> passengers= new ArrayList<>();
 }
