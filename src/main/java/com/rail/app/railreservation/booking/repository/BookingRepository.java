@@ -11,9 +11,30 @@ import java.time.LocalDate;
 
 public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
-    @Query("")
-    BookingStatus findByLastWaitingStatus(@Param("trainNo") int trainNo, @Param("frm") String frm,
-                                          @Param("to") String to, @Param("doj")LocalDate doj,
-                                          @Param("journyClass")JourneyClass journeyClass,
-                                          @Param("bkngStatus")BookingStatus bkngStatus);
+    @Query("SELECT TOP 1 * FROM Booking b" +
+            "WHERE b.name = :name AND b.age = :age AND b.sex = :sex " +
+            "AND b.trainNo = :trainNo AND b.from = :frm" +
+            "AND b.to = :to AND b.dtOfJourny = :doj" +
+            "AND b.journeyClass = :journyClass " +
+            "AND b.bookingStatus = :bkngStatus" +
+            "ORDER BY b.timestamp DESC ")
+    Booking findLastBooking(@Param("name") String name,@Param("age") int age,
+                            @Param("sex") String sex,@Param("trainNo") int trainNo, @Param("frm") String frm,
+                            @Param("to") String to, @Param("doj")LocalDate doj,
+                            @Param("journyClass")JourneyClass journeyClass,
+                            @Param("bkngStatus")BookingStatus bkngStatus);
+
+
+    @Query("SELECT TOP 1 * FROM Booking b" +
+            "WHERE b.name = :name AND b.age = :age AND b.sex = :sex " +
+            "AND b.trainNo = :trainNo AND b.from = :frm" +
+            "AND b.to = :to AND b.dtOfJourny = :doj" +
+            "AND b.journeyClass = :journyClass " +
+            "AND b.bookingStatus = :bkngStatus" +
+            "ORDER BY b.timestamp ASC ")
+    Booking findFirstBooking(@Param("name") String name,@Param("age") int age,
+                             @Param("sex") String sex,@Param("trainNo") int trainNo, @Param("frm") String frm,
+                             @Param("to") String to, @Param("doj")LocalDate doj,
+                             @Param("journyClass")JourneyClass journeyClass,
+                             @Param("bkngStatus")BookingStatus bkngStatus);
 }

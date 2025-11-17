@@ -36,7 +36,11 @@ public class Booking {
     private int seatNo;
 
 
-    public Booking(String name, int age, String sex, int trainNo, String from, String to, LocalDate dtOfJourny, JourneyClass journeyClass, BookingStatus bookingStatus, int seatNo) {
+    public Booking(String name, int age, String sex, int trainNo,
+                   String from, String to, LocalDate dtOfJourny,
+                   JourneyClass journeyClass, BookingStatus bookingStatus,
+                   Timestamp timestamp,int seatNo) {
+
         this.name = name;
         this.age = age;
         this.sex = sex;
@@ -46,6 +50,7 @@ public class Booking {
         this.dtOfJourny = dtOfJourny;
         this.journeyClass = journeyClass;
         this.bookingStatus = bookingStatus;
+        this.timestamp = timestamp;
         this.seatNo = seatNo;
     }
 }

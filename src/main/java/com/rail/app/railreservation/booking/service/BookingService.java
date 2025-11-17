@@ -116,7 +116,7 @@ public class BookingService {
                 bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
                                              request.getTrainNo(), request.getFrom(), request.getTo(),
                                              LocalDate.parse(request.getDoj()), request.getJourneyClass(),
-                                             BookingStatus.CONFIRMED, Timestamp.from(Instant.now()),seatNum));
+                                             BookingStatus.CONFIRMED,Timestamp.from(Instant.now()),seatNum));
             }
 
             //Save The Last Allotted Seat Number
@@ -125,6 +125,15 @@ public class BookingService {
             seatNoTrackerRepo.save(seatNoTracker);
 
         }else {
+
+
+
+
+            for (Passenger psngr : request.getPassengers()){
+
+                Booking = bookingRepo.findFirstBooking();
+            }
+
 
 
         }
