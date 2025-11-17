@@ -15,7 +15,6 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class Booking {
 
@@ -27,12 +26,24 @@ public class Booking {
     private int age;
     private String sex;
     private int trainNo;
-    private LocalDate startDt;
-    private LocalDate endDt;
     private String from;
     private String to;
     private LocalDate dtOfJourny;
     private JourneyClass journeyClass;
     private BookingStatus bookingStatus;
     private int seatNo;
+
+
+    public Booking(String name, int age, String sex, int trainNo, String from, String to, LocalDate dtOfJourny, JourneyClass journeyClass, BookingStatus bookingStatus, int seatNo) {
+        this.name = name;
+        this.age = age;
+        this.sex = sex;
+        this.trainNo = trainNo;
+        this.from = from;
+        this.to = to;
+        this.dtOfJourny = dtOfJourny;
+        this.journeyClass = journeyClass;
+        this.bookingStatus = bookingStatus;
+        this.seatNo = seatNo;
+    }
 }

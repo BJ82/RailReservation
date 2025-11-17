@@ -1,5 +1,6 @@
 package com.rail.app.railreservation.booking.service;
 
+import com.rail.app.railreservation.booking.entity.SeatNoTracker;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.dto.BookedResponse;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
@@ -55,9 +56,11 @@ public class BookingService {
 
     public BookedResponse book(BookingRequest request) throws InvalidBookingException{
 
+        //Check if Train No is Valid
         Train trn = trainRepo.findByTrainNo(request.getTrainNo())
                 .orElseThrow(() -> new InvalidBookingException("Booking Not Allowed On Non Existent Train"));
 
+        //Check if route is valid
         isValidRoute(request.getFrom(), request.getTo(), trn)
                 .orElseThrow(() -> new InvalidBookingException("TrainNo:" + request.getTrainNo() + " Not Running " + "Between " + request.getFrom() + "And " + request.getTo()));
 
@@ -73,16 +76,31 @@ public class BookingService {
         List<Integer> childRoutes = getChildRoutes(request.getFrom(), request.getTo());
         routeIDS.addAll(childRoutes);
 
-        seatCountRepo.updateSeatCount(request.getTrainNo(),routeIDS,request.getPassengers().size(), LocalDate.parse(request.getDoj()),journeyClass.name().toLowerCase());
+        seatCountRepo.updateSeatCount(request.getTrainNo(),routeIDS,
+                                      request.getPassengers().size(),
+                                      LocalDate.parse(request.getDoj()),
+                                      request.getJourneyClass());
 
-        AtomicInteger lstAllotedSeatNum = seatNoTrackerRepo.findLastSeatNum(request.getTrainNo(),request.getJourneyClass(),request.getDoj());
+        SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
+                                                                            request.getJourneyClass(),
+                                                                            LocalDate.parse(request.getDoj()));
 
-        int seatNum;
+        AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
+
+        int seatNum = 0;
         for(Passenger psngr:request.getPassengers()){
 
             seatNum = lstAllotedSeatNum.addAndGet(1);
-            bookingRepo.save(new Booking(psngr.getName(),psngr.getAge(),psngr.getSex(),request.getTrainNo(),request.getFrom(),request.getTo(),request.getJourneyClass(), BookingStatus.CONFIRMED,seatNum));
+
+            bookingRepo.save(new Booking(psngr.getName(),psngr.getAge(),psngr.getSex(),
+                                         request.getTrainNo(),request.getFrom(),request.getTo(),
+                                         LocalDate.parse(request.getDoj()),request.getJourneyClass(),
+                                         BookingStatus.CONFIRMED,seatNum));
         }
+
+        seatNoTracker.setLstSeatNum(seatNum);
+        seatNoTrackerRepo.save(seatNoTracker);
+
 
 
     }

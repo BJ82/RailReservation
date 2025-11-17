@@ -9,13 +9,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface SeatNoTrackerRepository extends JpaRepository<SeatNoTracker,Integer> {
 
-    @Query("SELECT snt.seatCount FROM SeatNoTracker snt" +
+    @Query("SELECT * FROM SeatNoTracker snt" +
             "WHERE snt.trainNo = :trainNo AND" +
             "snt.journeyClass = :jrnyClass AND" +
             "snt.startDate <= :doj AND" +
             "snt.endDt > :doj")
-    Integer findLastSeatNum(@Param("trainNo") int trainNo, @Param("jrnyClass") JourneyClass journeyClass, @Param("doj") LocalDate doj);
+    SeatNoTracker findSeatNoTracker(@Param("trainNo") int trainNo, @Param("jrnyClass") JourneyClass journeyClass, @Param("doj") LocalDate doj);
 }
