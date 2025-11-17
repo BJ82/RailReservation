@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 @Entity
@@ -31,6 +32,7 @@ public class Booking {
     private LocalDate dtOfJourny;
     private JourneyClass journeyClass;
     private BookingStatus bookingStatus;
+    private Timestamp timestamp;
     private int seatNo;
 
 
