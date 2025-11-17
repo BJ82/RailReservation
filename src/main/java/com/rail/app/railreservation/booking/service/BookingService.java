@@ -7,6 +7,7 @@ import com.rail.app.railreservation.booking.dto.Passenger;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCounterRepository;
+import com.rail.app.railreservation.booking.repository.SeatNoTrackerRepository;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,11 +38,17 @@ public class BookingService {
 
     private BookingRepository bookingRepo;
 
-    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,SeatCounterRepository seatCountRepo,BookingRepository bookingRepo) {
+    private SeatNoTrackerRepository seatNoTrackerRepo;
+
+    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
+                          SeatCounterRepository seatCountRepo,BookingRepository bookingRepo,
+                          SeatNoTrackerRepository seatNoTrackerRepo) {
+
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
         this.seatCountRepo = seatCountRepo;
         this.bookingRepo = bookingRepo;
+        this.seatNoTrackerRepo = seatNoTrackerRepo;
     }
 
     ModelMapper mapper = new ModelMapper();
@@ -67,9 +75,13 @@ public class BookingService {
 
         seatCountRepo.updateSeatCount(request.getTrainNo(),routeIDS,request.getPassengers().size(), LocalDate.parse(request.getDoj()),journeyClass.name().toLowerCase());
 
+        AtomicInteger lstAllotedSeatNum = seatNoTrackerRepo.findLastSeatNum(request.getTrainNo(),request.getJourneyClass(),request.getDoj());
+
+        int seatNum;
         for(Passenger psngr:request.getPassengers()){
 
-            bookingRepo.save(new Booking(psngr.getName(),psngr.getAge(),psngr.getSex(),request.getTrainNo(),request.getFrom(),request.getTo(),request.getJourneyClass(), BookingStatus.CONFIRMED,));
+            seatNum = lstAllotedSeatNum.addAndGet(1);
+            bookingRepo.save(new Booking(psngr.getName(),psngr.getAge(),psngr.getSex(),request.getTrainNo(),request.getFrom(),request.getTo(),request.getJourneyClass(), BookingStatus.CONFIRMED,seatNum));
         }
 
 

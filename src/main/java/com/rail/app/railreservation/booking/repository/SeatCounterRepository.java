@@ -20,5 +20,6 @@ public interface SeatCounterRepository extends JpaRepository<SeatCounter,Integer
             "SET sc.seatCount = sc.seatCount - :count " +
             "WHERE sc.trainNo = :trainNo AND sc.routeID IN (:routeIDS) " +
             "AND sc.journeyClass = :journeyClass AND sc.startDate <= :doj AND sc.endDate > :doj")
-    void updateSeatCount(@Param("trainNo") int trainNo, @Param("routeIDS") List<Integer> routeIDS, @Param("count") int count, @Param("doj") LocalDate doj, @Param("class") JourneyClass journeyClass);
+    void updateSeatCount(@Param("trainNo") int trainNo, @Param("routeIDS") List<Integer> routeIDS,
+                         @Param("count") int count, @Param("doj") LocalDate doj, @Param("class") JourneyClass journeyClass);
 }
