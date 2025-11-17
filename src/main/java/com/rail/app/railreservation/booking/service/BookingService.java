@@ -60,12 +60,21 @@ public class BookingService {
         Train trn = trainRepo.findByTrainNo(request.getTrainNo())
                 .orElseThrow(() -> new InvalidBookingException("Booking Not Allowed On Non Existent Train"));
 
-        //Check if route is valid
+        //Check if Route is valid
         isValidRoute(request.getFrom(), request.getTo(), trn)
-                .orElseThrow(() -> new InvalidBookingException("TrainNo:" + request.getTrainNo() + " Not Running " + "Between " + request.getFrom() + "And " + request.getTo()));
+                .orElseThrow(() -> new InvalidBookingException("TrainNo:" + request.getTrainNo() + " Not Running " + "Between " +
+                                                                request.getFrom() + "And " + request.getTo()));
 
         //isBookingOpen();
         //isSeatAvailable();
+
+        /*
+          Get All Route IDS
+          This includes the main journey route
+          And all the parent and child routes
+          Of the main route
+
+        */
 
         List<Integer> routeIDS = new ArrayList<>();
         routeIDS.add(trn.getRouteId());
@@ -76,11 +85,13 @@ public class BookingService {
         List<Integer> childRoutes = getChildRoutes(request.getFrom(), request.getTo());
         routeIDS.addAll(childRoutes);
 
+        //Update(Decrement) Seat Count By No Of Passenger In Booking Request.
         seatCountRepo.updateSeatCount(request.getTrainNo(),routeIDS,
                                       request.getPassengers().size(),
                                       LocalDate.parse(request.getDoj()),
                                       request.getJourneyClass());
 
+        //Retrieve The Last Alloted Seat Number
         SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
                                                                             request.getJourneyClass(),
                                                                             LocalDate.parse(request.getDoj()));
@@ -98,6 +109,7 @@ public class BookingService {
                                          BookingStatus.CONFIRMED,seatNum));
         }
 
+        //Save The Last Newly Alloted Seat Number
         seatNoTracker.setLstSeatNum(seatNum);
         seatNoTrackerRepo.save(seatNoTracker);
 
