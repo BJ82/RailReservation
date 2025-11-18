@@ -94,17 +94,18 @@ public class BookingService {
         if(seatsAvailable >= request.getPassengers().size()) {
 
             //Update(Increment) Seat Count By No Of Passenger.
-
-            seatCountRepo.updateSeatCount(request.getTrainNo(), routeIDS,
+            /*seatCountRepo.updateSeatCount(request.getTrainNo(), routeIDS,
                                           request.getPassengers().size(),
                                           LocalDate.parse(request.getDoj()),
-                                          request.getJourneyClass());
+                                          request.getJourneyClass());*/
 
 
             //Retrieve The Last Alloted Seat Number
             SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
                                                                               request.getJourneyClass(),
-                                                                              LocalDate.parse(request.getDoj()));
+                                                                              LocalDate.parse(request.getStartDt()),
+                                                                              LocalDate.parse(request.getEndDt())
+                                                                            );
 
             AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
 
@@ -114,35 +115,128 @@ public class BookingService {
                 seatNum = lstAllotedSeatNum.addAndGet(1);
 
                 bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
-                                             request.getTrainNo(), request.getFrom(), request.getTo(),
+                                             request.getTrainNo(),LocalDate.parse(request.getStartDt()),
+                                             LocalDate.parse(request.getEndDt()),request.getFrom(), request.getTo(),
                                              LocalDate.parse(request.getDoj()), request.getJourneyClass(),
-                                             BookingStatus.CONFIRMED,Timestamp.from(Instant.now()),seatNum));
+                                             BookingStatus.CONFIRMED,Timestamp.from(Instant.now()),
+                                             seatNum
+                                            )
+                                );
             }
 
-            //Save The Last Allotted Seat Number
 
+            //Save The Last Allotted Seat Number
             seatNoTracker.setLstSeatNum(seatNum);
             seatNoTrackerRepo.save(seatNoTracker);
 
         }else {
 
 
+            List<Integer> seatNums = getSeatNumsBefore(request);
 
+            if(seatNums.size() < request.getPassengers().size()){
 
-            for (Passenger psngr : request.getPassengers()){
-
-                Booking = bookingRepo.findFirstBooking();
+                seatNums.addAll(getSeatNumsAfter(request));
             }
 
 
+            BookingStatus bookingStatus;
+
+            if(seatNums.size() >= request.getPassengers().size()){
+
+                //Mark Confirmed
+                bookingStatus = BookingStatus.CONFIRMED;
+
+            }else{
+
+                //Mark Waiting
+                bookingStatus = BookingStatus.WAITING;
+
+                for(int i=0;i<request.getPassengers().size();i++){
+                    seatNums.add(i,0);
+                }
+            }
+
+            for (Passenger psngr : request.getPassengers()) {
+                int i = 0;
+
+                bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
+                                             request.getTrainNo(),LocalDate.parse(request.getStartDt()),LocalDate.parse(request.getEndDt()),
+                                             request.getFrom(), request.getTo(),LocalDate.parse(request.getDoj()),
+                                             request.getJourneyClass(), bookingStatus,Timestamp.from(Instant.now()),
+                                             seatNums.get(i)));
+                i++;
+            }
 
         }
 
-
-
-
-
     }
+
+    private List<Integer> getSeatNumsBefore(BookingRequest request){
+
+        String src;
+        String dest;
+        List<String> stns = getAllStations(request.getTrainNo());
+        List<Integer> seatNums = new ArrayList<>();
+
+        for(int i=0;i<=stns.indexOf(request.getFrom());i++){
+            src = stns.get(i);
+            for(int j=i+1;j<=stns.indexOf(request.getFrom());j++){
+                dest = stns.get(j);
+                seatNums.addAll(bookingRepo.findSeatNumbers( src,dest,request.getTrainNo(),
+                                LocalDate.parse(request.getStartDt()),
+                                LocalDate.parse(request.getEndDt()),
+                                request.getJourneyClass()
+                        )
+                );
+
+                if(seatNums.size() >= request.getPassengers().size())
+                    break;
+            }
+        }
+
+        return seatNums;
+    }
+
+    private List<Integer> getSeatNumsAfter(BookingRequest request){
+
+        String src;
+        String dest;
+        List<String> stns = getAllStations(request.getTrainNo());
+        List<Integer> seatNums = new ArrayList<>();
+
+        for (int i = stns.indexOf(request.getTo()); i < stns.size(); i++) {
+            src = stns.get(i);
+            for (int j = i + 1; j < stns.size(); j++) {
+                dest = stns.get(j);
+                seatNums.addAll(bookingRepo.findSeatNumbers(src, dest, request.getTrainNo(),
+                                LocalDate.parse(request.getStartDt()),
+                                LocalDate.parse(request.getEndDt()),
+                                request.getJourneyClass()
+                        )
+                );
+
+                if (seatNums.size() >= request.getPassengers().size())
+                    break;
+            }
+        }
+        return seatNums;
+    }
+
+    private List<String> getAllStations(int trainNo){
+
+        Train train;
+        train = trainRepo.findByTrainNo(trainNo).get();
+
+        int routeID;
+        routeID = train.getRouteId();
+
+        Route r;
+        r = routeRepo.findByRouteID(routeID).get();
+
+        return new ArrayList<>(r.getStations());
+    }
+
 
     private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
 

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,8 @@ public class BookingRequest {
 
     private int trainNo;
     private String trainName;
+    private String startDt;
+    private String endDt;
     private String from;
     private String to;
     private JourneyClass journeyClass;

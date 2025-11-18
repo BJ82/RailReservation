@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
@@ -37,4 +38,15 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                              @Param("to") String to, @Param("doj")LocalDate doj,
                              @Param("journyClass")JourneyClass journeyClass,
                              @Param("bkngStatus")BookingStatus bkngStatus);
+
+    @Query("SELECT b.seatNo FROM Booking b" +
+           "WHERE b.from = :frm AND b.to = :to" +
+           "AND b.trainNo = :trainNo" +
+           "AND b.journeyClass = :jrnyClass" +
+           "AND b.startDt = :strtDt" +
+           "AND b.endDt = :endDt")
+    List<Integer> findSeatNumbers(@Param("frm") String frm,@Param("to") String to,
+                                     @Param("trainNo") int trainNo,@Param("strtDt") LocalDate strtDt,
+                                     @Param("endDt") LocalDate endDt,
+                                     @Param("jrnyClass") JourneyClass jrnyClass );
 }

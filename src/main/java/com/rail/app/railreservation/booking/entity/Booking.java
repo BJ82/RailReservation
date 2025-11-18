@@ -27,6 +27,8 @@ public class Booking {
     private int age;
     private String sex;
     private int trainNo;
+    private LocalDate startDt;
+    private LocalDate endDt;
     private String from;
     private String to;
     private LocalDate dtOfJourny;
@@ -35,16 +37,17 @@ public class Booking {
     private Timestamp timestamp;
     private int seatNo;
 
-
     public Booking(String name, int age, String sex, int trainNo,
-                   String from, String to, LocalDate dtOfJourny,
-                   JourneyClass journeyClass, BookingStatus bookingStatus,
-                   Timestamp timestamp,int seatNo) {
+                   LocalDate startDt, LocalDate endDt, String from,
+                   String to, LocalDate dtOfJourny, JourneyClass journeyClass,
+                   BookingStatus bookingStatus, Timestamp timestamp, int seatNo) {
 
         this.name = name;
         this.age = age;
         this.sex = sex;
         this.trainNo = trainNo;
+        this.startDt = startDt;
+        this.endDt = endDt;
         this.from = from;
         this.to = to;
         this.dtOfJourny = dtOfJourny;

@@ -16,7 +16,11 @@ public interface SeatNoTrackerRepository extends JpaRepository<SeatNoTracker,Int
     @Query("SELECT * FROM SeatNoTracker snt" +
             "WHERE snt.trainNo = :trainNo AND" +
             "snt.journeyClass = :jrnyClass AND" +
-            "snt.startDate <= :doj AND" +
-            "snt.endDt > :doj")
-    SeatNoTracker findSeatNoTracker(@Param("trainNo") int trainNo, @Param("jrnyClass") JourneyClass journeyClass, @Param("doj") LocalDate doj);
+            "snt.startDate = :startDt AND" +
+            "snt.endDt > :endDt")
+    SeatNoTracker findSeatNoTracker(@Param("trainNo") int trainNo,
+                                    @Param("jrnyClass") JourneyClass journeyClass,
+                                    @Param("startDt") LocalDate startDt,
+                                    @Param("endDt") LocalDate endDt
+                                   );
 }
