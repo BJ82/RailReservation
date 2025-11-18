@@ -26,6 +26,7 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                             @Param("bkngStatus")BookingStatus bkngStatus);
 
 
+
     @Query("SELECT TOP 1 * FROM Booking b" +
             "WHERE b.name = :name AND b.age = :age AND b.sex = :sex " +
             "AND b.trainNo = :trainNo AND b.from = :frm" +
@@ -39,6 +40,9 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                              @Param("journyClass")JourneyClass journeyClass,
                              @Param("bkngStatus")BookingStatus bkngStatus);
 
+
+
+
     @Query("SELECT b.seatNo FROM Booking b" +
            "WHERE b.from = :frm AND b.to = :to" +
            "AND b.trainNo = :trainNo" +
@@ -49,4 +53,30 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                                      @Param("trainNo") int trainNo,@Param("strtDt") LocalDate strtDt,
                                      @Param("endDt") LocalDate endDt,
                                      @Param("jrnyClass") JourneyClass jrnyClass );
+
+
+
+    @Query("SELECT COUNT(*) FROM Booking b" +
+            "WHERE b.trainNo = :trainNo" +
+            "AND b.journeyClass = :jrnyClass" +
+            "AND b.startDt = :strtDt" +
+            "AND b.endDt = :endDt" +
+            "AND b.seatNo = :seatNo")
+    int findCountOfSeatNumber(@Param("trainNo") int trainNo,
+                  @Param("jrnyClass") JourneyClass jrnyClass,
+                  @Param("strtDt") LocalDate strtDt,
+                  @Param("endDt") LocalDate endDt,
+                  @Param("seatNo") int seatNo);
+
+    @Query("SELECT * FROM Booking b" +
+            "WHERE b.seatNo = :seatNo" +
+            "WHERE b.trainNo = :trainNo" +
+            "AND b.journeyClass = :jrnyClass" +
+            "AND b.startDt = :strtDt" +
+            "AND b.endDt = :endDt")
+    List<Booking> findBySeatNo(@Param("seatNo") int seatNo,@Param("trainNo") int trainNo,
+                               @Param("jrnyClass") JourneyClass jrnyClass,
+                               @Param("strtDt") LocalDate strtDt,
+                               @Param("endDt") LocalDate endDt);
+
 }

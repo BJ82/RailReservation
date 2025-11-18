@@ -133,10 +133,13 @@ public class BookingService {
 
 
             List<Integer> seatNums = getSeatNumsBefore(request);
+            seatNums = filterByAvlbSeatNums(seatNums,request);
 
             if(seatNums.size() < request.getPassengers().size()){
 
                 seatNums.addAll(getSeatNumsAfter(request));
+                seatNums = filterByAvlbSeatNums(seatNums,request);
+
             }
 
 
@@ -198,6 +201,48 @@ public class BookingService {
         return seatNums;
     }
 
+    private List<Integer> filterByAvlbSeatNums(List<Integer> seatNums,BookingRequest request){
+
+        List<Integer> avlblSeatNums = new ArrayList<>();
+        int count = 0;
+        for(Integer num:seatNums){
+
+            count = bookingRepo.findCountOfSeatNumber(request.getTrainNo(),
+                                                      request.getJourneyClass(),
+                                                      LocalDate.parse(request.getStartDt()),
+                                                      LocalDate.parse(request.getEndDt()),num
+                                                     );
+            if(count == 1){
+                avlblSeatNums.add(num);
+            }
+            else if(count > 1){
+                List<Booking> bookings = bookingRepo.findBySeatNo(num,request.getTrainNo(),
+                                                                  request.getJourneyClass(),
+                                                                  LocalDate.parse(request.getStartDt()),
+                                                                  LocalDate.parse(request.getEndDt()));
+
+                String src;
+                String dest;
+                Integer routeID;
+                boolean isOverlapp = false;
+                for(Booking bkng:bookings){
+                    src = bkng.getFrom();
+                    dest = bkng.getTo();
+                    routeID = getRouteId(src,dest).get();
+                    isOverlapp = getOverlappingRoutes(request.getFrom(),
+                                                      request.getTo()).contains(routeID);
+
+                    if(isOverlapp)
+                        break;
+                }
+                if(!isOverlapp)
+                    avlblSeatNums.add(num);
+            }
+        }
+
+        return avlblSeatNums;
+    }
+
     private List<Integer> getSeatNumsAfter(BookingRequest request){
 
         String src;
@@ -236,7 +281,6 @@ public class BookingService {
 
         return new ArrayList<>(r.getStations());
     }
-
 
     private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
 
