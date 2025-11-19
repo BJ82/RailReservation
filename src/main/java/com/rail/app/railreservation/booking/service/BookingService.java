@@ -36,7 +36,7 @@ public class BookingService {
 
     private final List<Integer> seatNums;
 
-    private BookingStatus bookingStatus;
+    private BookingStatus BOOKING_STATUS = BookingStatus.CONFIRMED;
 
     private final List<Integer> pnrs;
 
@@ -98,20 +98,19 @@ public class BookingService {
         int seatsBooked = seatCountRepo.findSeatCount(request.getTrainNo(),routeIDS.get(0),
                                                       request.getJourneyClass(),LocalDate.parse(request.getStartDt()),
                                                       LocalDate.parse(request.getEndDt()));
+        //Retrieve Last Allotted Seat Number
+        SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
+                request.getJourneyClass(),
+                LocalDate.parse(request.getStartDt()),
+                LocalDate.parse(request.getEndDt())
+        );
+
+        AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
+
         int seatsAvailable = 50 - seatsBooked;
 
         if(seatsAvailable >= request.getPassengers().size()) {
 
-            bookingStatus = BookingStatus.CONFIRMED;
-
-            //Retrieve Last Allotted Seat Number
-            SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
-                                                                              request.getJourneyClass(),
-                                                                              LocalDate.parse(request.getStartDt()),
-                                                                              LocalDate.parse(request.getEndDt())
-                                                                            );
-
-            AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
 
             for(int i=1;i<=request.getPassengers().size();i++){
 
@@ -140,16 +139,37 @@ public class BookingService {
             if(seatNums.size() >= request.getPassengers().size()){
 
                 //MARK CONFIRMED
-                bookingStatus = BookingStatus.CONFIRMED;
+                BOOKING_STATUS = BookingStatus.CONFIRMED;
+
+            }else if(seatsAvailable + seatNums.size() >= request.getPassengers().size()){
+
+
+                for(int i=0;i<seatsAvailable;i++){
+
+                    seatNums.add(lstAllotedSeatNum.addAndGet(1));
+                }
+
+                //Save Last Allotted Seat Number
+                seatNoTracker.setLstSeatNum(seatNums.getLast());
+                seatNoTrackerRepo.save(seatNoTracker);
 
             }else{
 
-                //MARK WAITING
-                bookingStatus = BookingStatus.WAITING;
+                for(int i=0;i<seatsAvailable;i++){
 
-                for(int i=0;i<request.getPassengers().size();i++){
-                    seatNums.add(i,0);
+                    seatNums.add(lstAllotedSeatNum.addAndGet(1));
                 }
+
+                //Save Last Allotted Seat Number
+                seatNoTracker.setLstSeatNum(seatNums.getLast());
+                seatNoTrackerRepo.save(seatNoTracker);
+
+                int shortFall = request.getPassengers().size() - seatNums.size();
+
+                for(int i=0;i<shortFall;i++){
+                    seatNums.add(0);
+                }
+
             }
 
         }
@@ -157,11 +177,17 @@ public class BookingService {
         int i = 0;
         for (Passenger psngr : request.getPassengers()) {
 
+            //MARK WAITING
+            if(seatNums.get(i) == 0)
+                BOOKING_STATUS = BookingStatus.WAITING;
+            else
+                BOOKING_STATUS = BookingStatus.CONFIRMED;
+
             Booking bkng = bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
                                                         request.getTrainNo(),LocalDate.parse(request.getStartDt()),
                                                         LocalDate.parse(request.getEndDt()),
                                                         request.getFrom(),request.getTo(),LocalDate.parse(request.getDoj()),
-                                                        request.getJourneyClass(), bookingStatus,Timestamp.from(Instant.now()),
+                                                        request.getJourneyClass(), BOOKING_STATUS,Timestamp.from(Instant.now()),
                                                         seatNums.get(i)
                                                        )
                                            );
@@ -179,7 +205,13 @@ public class BookingService {
 
             bookedPassenger.setPnr(pnrs.get(i));
             bookedPassenger.setSeatNo(seatNums.get(i));
-            bookedPassenger.setStatus(bookingStatus);
+
+            if(seatNums.get(i) == 0)
+                BOOKING_STATUS = BookingStatus.WAITING;
+            else
+                BOOKING_STATUS = BookingStatus.CONFIRMED;
+
+            bookedPassenger.setStatus(BOOKING_STATUS);
 
             i++;
         }
