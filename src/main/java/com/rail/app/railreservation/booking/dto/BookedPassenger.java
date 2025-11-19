@@ -1,5 +1,6 @@
 package com.rail.app.railreservation.booking.dto;
 
+import com.rail.app.railreservation.booking.enums.BookingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,5 +15,5 @@ public class BookedPassenger {
     private String sex;
     private int seatNo;
     private int pnr;
-    private String status;
+    private BookingStatus status;
 }

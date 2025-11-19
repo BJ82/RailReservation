@@ -1,8 +1,9 @@
 package com.rail.app.railreservation.booking.service;
 
+import com.rail.app.railreservation.booking.dto.BookedPassenger;
+import com.rail.app.railreservation.booking.dto.BookingResponse;
 import com.rail.app.railreservation.booking.entity.SeatNoTracker;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.booking.dto.BookedResponse;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.dto.Passenger;
 import com.rail.app.railreservation.booking.entity.Booking;
@@ -33,6 +34,12 @@ public class BookingService {
 
     private static final String INSIDE_BOOKING_SERVICE = "Inside Booking Service...";
 
+    private final List<Integer> seatNums;
+
+    private BookingStatus bookingStatus;
+
+    private final List<Integer> pnrs;
+
     private TrainRepository trainRepo;
 
     private RouteRepository routeRepo;
@@ -52,11 +59,13 @@ public class BookingService {
         this.seatCountRepo = seatCountRepo;
         this.bookingRepo = bookingRepo;
         this.seatNoTrackerRepo = seatNoTrackerRepo;
+        this.seatNums = Collections.synchronizedList(new ArrayList<>());
+        this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
 
     ModelMapper mapper = new ModelMapper();
 
-    public BookedResponse book(BookingRequest request) throws InvalidBookingException{
+    public BookingResponse book(BookingRequest request) throws InvalidBookingException{
 
         //Check if Train No is Valid
         Train trn = trainRepo.findByTrainNo(request.getTrainNo())
@@ -87,20 +96,15 @@ public class BookingService {
         routeIDS.addAll(childRoutes);
 
         int seatsBooked = seatCountRepo.findSeatCount(request.getTrainNo(),routeIDS.get(0),
-                                                      LocalDate.parse(request.getDoj()),
-                                                      request.getJourneyClass());
+                                                      request.getJourneyClass(),LocalDate.parse(request.getStartDt()),
+                                                      LocalDate.parse(request.getEndDt()));
         int seatsAvailable = 50 - seatsBooked;
 
         if(seatsAvailable >= request.getPassengers().size()) {
 
-            //Update(Increment) Seat Count By No Of Passenger.
-            /*seatCountRepo.updateSeatCount(request.getTrainNo(), routeIDS,
-                                          request.getPassengers().size(),
-                                          LocalDate.parse(request.getDoj()),
-                                          request.getJourneyClass());*/
+            bookingStatus = BookingStatus.CONFIRMED;
 
-
-            //Retrieve The Last Alloted Seat Number
+            //Retrieve Last Allotted Seat Number
             SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
                                                                               request.getJourneyClass(),
                                                                               LocalDate.parse(request.getStartDt()),
@@ -109,50 +113,38 @@ public class BookingService {
 
             AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
 
-            int seatNum = 0;
-            for (Passenger psngr : request.getPassengers()) {
+            for(int i=1;i<=request.getPassengers().size();i++){
 
-                seatNum = lstAllotedSeatNum.addAndGet(1);
-
-                bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
-                                             request.getTrainNo(),LocalDate.parse(request.getStartDt()),
-                                             LocalDate.parse(request.getEndDt()),request.getFrom(), request.getTo(),
-                                             LocalDate.parse(request.getDoj()), request.getJourneyClass(),
-                                             BookingStatus.CONFIRMED,Timestamp.from(Instant.now()),
-                                             seatNum
-                                            )
-                                );
+                seatNums.add(lstAllotedSeatNum.addAndGet(1));
             }
 
 
-            //Save The Last Allotted Seat Number
-            seatNoTracker.setLstSeatNum(seatNum);
+            //Save Last Allotted Seat Number
+            seatNoTracker.setLstSeatNum(seatNums.getLast());
             seatNoTrackerRepo.save(seatNoTracker);
 
         }else {
 
 
-            List<Integer> seatNums = getSeatNumsBefore(request);
-            seatNums = filterByAvlbSeatNums(seatNums,request);
+            seatNums.addAll(getSeatNumsBefore(request));
+            seatNums.addAll(filterByAvlbSeatNums(seatNums,request));
 
             if(seatNums.size() < request.getPassengers().size()){
 
                 seatNums.addAll(getSeatNumsAfter(request));
-                seatNums = filterByAvlbSeatNums(seatNums,request);
+                seatNums.addAll(filterByAvlbSeatNums(seatNums,request));
 
             }
 
 
-            BookingStatus bookingStatus;
-
             if(seatNums.size() >= request.getPassengers().size()){
 
-                //Mark Confirmed
+                //MARK CONFIRMED
                 bookingStatus = BookingStatus.CONFIRMED;
 
             }else{
 
-                //Mark Waiting
+                //MARK WAITING
                 bookingStatus = BookingStatus.WAITING;
 
                 for(int i=0;i<request.getPassengers().size();i++){
@@ -160,18 +152,39 @@ public class BookingService {
                 }
             }
 
-            for (Passenger psngr : request.getPassengers()) {
-                int i = 0;
-
-                bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
-                                             request.getTrainNo(),LocalDate.parse(request.getStartDt()),LocalDate.parse(request.getEndDt()),
-                                             request.getFrom(), request.getTo(),LocalDate.parse(request.getDoj()),
-                                             request.getJourneyClass(), bookingStatus,Timestamp.from(Instant.now()),
-                                             seatNums.get(i)));
-                i++;
-            }
-
         }
+
+        int i = 0;
+        for (Passenger psngr : request.getPassengers()) {
+
+            Booking bkng = bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
+                                                        request.getTrainNo(),LocalDate.parse(request.getStartDt()),
+                                                        LocalDate.parse(request.getEndDt()),
+                                                        request.getFrom(),request.getTo(),LocalDate.parse(request.getDoj()),
+                                                        request.getJourneyClass(), bookingStatus,Timestamp.from(Instant.now()),
+                                                        seatNums.get(i)
+                                                       )
+                                           );
+
+            pnrs.add(i,bkng.getPnr());
+
+            i++;
+        }
+
+        BookingResponse bookingResponse = mapper.map(request, BookingResponse.class);
+        bookingResponse.setBookingDateTime(Timestamp.from(Instant.now()));
+
+        i = 0;
+        for(BookedPassenger bookedPassenger:bookingResponse.getPassengerList()){
+
+            bookedPassenger.setPnr(pnrs.get(i));
+            bookedPassenger.setSeatNo(seatNums.get(i));
+            bookedPassenger.setStatus(bookingStatus);
+
+            i++;
+        }
+
+        return bookingResponse;
 
     }
 
@@ -286,7 +299,7 @@ public class BookingService {
 
             boolean isRouteValid = false;
 
-            Route route = routeRepo.findByRouteID(trn.getRouteID()).get();
+            Route route = routeRepo.findByRouteID(trn.getRouteId()).get();
 
             List<String> stns = route.getStations();
 
