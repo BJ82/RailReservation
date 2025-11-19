@@ -12,55 +12,56 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
-    @Query("SELECT TOP 1 * FROM Booking b" +
+    @Query("SELECT b FROM Booking b " +
             "WHERE b.name = :name AND b.age = :age AND b.sex = :sex " +
-            "AND b.trainNo = :trainNo AND b.from = :frm" +
-            "AND b.to = :to AND b.dtOfJourny = :doj" +
+            "AND b.trainNo = :trainNo AND b.startFrom = :frm " +
+            "AND b.endAt = :to AND b.dtOfJourny = :doj " +
             "AND b.journeyClass = :journyClass " +
-            "AND b.bookingStatus = :bkngStatus" +
-            "ORDER BY b.timestamp DESC ")
+            "AND b.bookingStatus = :bkngStatus " +
+            "ORDER BY b.timestamp DESC LIMIT 1"
+          )
     Booking findLastBooking(@Param("name") String name,@Param("age") int age,
-                            @Param("sex") String sex,@Param("trainNo") int trainNo, @Param("frm") String frm,
-                            @Param("to") String to, @Param("doj")LocalDate doj,
-                            @Param("journyClass")JourneyClass journeyClass,
-                            @Param("bkngStatus")BookingStatus bkngStatus);
+                            @Param("sex") String sex,@Param("trainNo") int trainNo, @Param("frm") String startFrom,
+                            @Param("to") String to, @Param("doj") LocalDate dtOfJourny,
+                            @Param("journyClass") JourneyClass journeyClass,
+                            @Param("bkngStatus") BookingStatus bookingStatus);
 
 
 
-    @Query("SELECT TOP 1 * FROM Booking b" +
+    @Query("SELECT b FROM Booking b " +
             "WHERE b.name = :name AND b.age = :age AND b.sex = :sex " +
-            "AND b.trainNo = :trainNo AND b.from = :frm" +
-            "AND b.to = :to AND b.dtOfJourny = :doj" +
+            "AND b.trainNo = :trainNo AND b.startFrom = :frm " +
+            "AND b.endAt = :to AND b.dtOfJourny = :doj " +
             "AND b.journeyClass = :journyClass " +
-            "AND b.bookingStatus = :bkngStatus" +
-            "ORDER BY b.timestamp ASC ")
+            "AND b.bookingStatus = :bkngStatus " +
+            "ORDER BY b.timestamp ASC LIMIT 1")
     Booking findFirstBooking(@Param("name") String name,@Param("age") int age,
-                             @Param("sex") String sex,@Param("trainNo") int trainNo, @Param("frm") String frm,
-                             @Param("to") String to, @Param("doj")LocalDate doj,
-                             @Param("journyClass")JourneyClass journeyClass,
-                             @Param("bkngStatus")BookingStatus bkngStatus);
+                             @Param("sex") String sex,@Param("trainNo") int trainNo, @Param("frm") String startFrom,
+                             @Param("to") String endAt, @Param("doj") LocalDate doj,
+                             @Param("journyClass") JourneyClass journeyClass,
+                             @Param("bkngStatus") BookingStatus bkngStatus);
 
 
 
 
-    @Query("SELECT b.seatNo FROM Booking b" +
-           "WHERE b.from = :frm AND b.to = :to" +
-           "AND b.trainNo = :trainNo" +
-           "AND b.journeyClass = :jrnyClass" +
-           "AND b.startDt = :strtDt" +
+    @Query("SELECT b.seatNo FROM Booking b " +
+           "WHERE b.startFrom = :frm AND b.endAt = :to " +
+           "AND b.trainNo = :trainNo " +
+           "AND b.journeyClass = :jrnyClass " +
+           "AND b.startDt = :strtDt " +
            "AND b.endDt = :endDt")
-    List<Integer> findSeatNumbers(@Param("frm") String frm,@Param("to") String to,
+    List<Integer> findSeatNumbers(@Param("frm") String startFrom,@Param("to") String endAt,
                                      @Param("trainNo") int trainNo,@Param("strtDt") LocalDate strtDt,
                                      @Param("endDt") LocalDate endDt,
                                      @Param("jrnyClass") JourneyClass jrnyClass );
 
 
 
-    @Query("SELECT COUNT(*) FROM Booking b" +
-            "WHERE b.trainNo = :trainNo" +
-            "AND b.journeyClass = :jrnyClass" +
-            "AND b.startDt = :strtDt" +
-            "AND b.endDt = :endDt" +
+    @Query("SELECT COUNT(*) FROM Booking b " +
+            "WHERE b.trainNo = :trainNo " +
+            "AND b.journeyClass = :jrnyClass " +
+            "AND b.startDt = :strtDt " +
+            "AND b.endDt = :endDt " +
             "AND b.seatNo = :seatNo")
     int findCountOfSeatNumber(@Param("trainNo") int trainNo,
                   @Param("jrnyClass") JourneyClass jrnyClass,
@@ -68,11 +69,11 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                   @Param("endDt") LocalDate endDt,
                   @Param("seatNo") int seatNo);
 
-    @Query("SELECT * FROM Booking b" +
-            "WHERE b.seatNo = :seatNo" +
-            "WHERE b.trainNo = :trainNo" +
-            "AND b.journeyClass = :jrnyClass" +
-            "AND b.startDt = :strtDt" +
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.seatNo = :seatNo " +
+            "AND b.trainNo = :trainNo " +
+            "AND b.journeyClass = :jrnyClass " +
+            "AND b.startDt = :strtDt " +
             "AND b.endDt = :endDt")
     List<Booking> findBySeatNo(@Param("seatNo") int seatNo,@Param("trainNo") int trainNo,
                                @Param("jrnyClass") JourneyClass jrnyClass,

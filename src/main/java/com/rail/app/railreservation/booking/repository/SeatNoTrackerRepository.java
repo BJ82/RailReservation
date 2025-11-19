@@ -13,10 +13,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public interface SeatNoTrackerRepository extends JpaRepository<SeatNoTracker,Integer> {
 
-    @Query("SELECT * FROM SeatNoTracker snt" +
-            "WHERE snt.trainNo = :trainNo AND" +
-            "snt.journeyClass = :jrnyClass AND" +
-            "snt.startDate = :startDt AND" +
+    @Query("SELECT snt FROM SeatNoTracker snt " +
+            "WHERE snt.trainNo = :trainNo AND " +
+            "snt.journeyClass = :jrnyClass AND " +
+            "snt.startDt = :startDt AND " +
             "snt.endDt > :endDt")
     SeatNoTracker findSeatNoTracker(@Param("trainNo") int trainNo,
                                     @Param("jrnyClass") JourneyClass journeyClass,

@@ -271,8 +271,8 @@ public class BookingService {
                 Integer routeID;
                 boolean isOverlapp = false;
                 for(Booking bkng:bookings){
-                    src = bkng.getFrom();
-                    dest = bkng.getTo();
+                    src = bkng.getStartFrom();
+                    dest = bkng.getEndAt();
                     routeID = getRouteId(src,dest).get();
                     isOverlapp = getOverlappingRoutes(request.getFrom(),
                                                       request.getTo()).contains(routeID);

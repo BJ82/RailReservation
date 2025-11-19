@@ -3,7 +3,6 @@ package com.rail.app.railreservation.booking.entity;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.common.enums.JourneyClass;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,8 +28,8 @@ public class Booking {
     private int trainNo;
     private LocalDate startDt;
     private LocalDate endDt;
-    private String from;
-    private String to;
+    private String startFrom;
+    private String endAt;
     private LocalDate dtOfJourny;
     private JourneyClass journeyClass;
     private BookingStatus bookingStatus;
@@ -38,7 +37,7 @@ public class Booking {
     private int seatNo;
 
     public Booking(String name, int age, String sex, int trainNo,
-                   LocalDate startDt, LocalDate endDt, String from,
+                   LocalDate startDt, LocalDate endDt, String startFrom,
                    String to, LocalDate dtOfJourny, JourneyClass journeyClass,
                    BookingStatus bookingStatus, Timestamp timestamp, int seatNo) {
 
@@ -48,8 +47,8 @@ public class Booking {
         this.trainNo = trainNo;
         this.startDt = startDt;
         this.endDt = endDt;
-        this.from = from;
-        this.to = to;
+        this.startFrom = startFrom;
+        this.endAt = to;
         this.dtOfJourny = dtOfJourny;
         this.journeyClass = journeyClass;
         this.bookingStatus = bookingStatus;
