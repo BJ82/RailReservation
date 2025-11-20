@@ -8,7 +8,7 @@ import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.dto.Passenger;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
-import com.rail.app.railreservation.booking.repository.SeatCounterRepository;
+import com.rail.app.railreservation.booking.repository.SeatCountRepository;
 import com.rail.app.railreservation.booking.repository.SeatNoTrackerRepository;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.common.repository.RouteRepository;
@@ -24,8 +24,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -46,14 +44,14 @@ public class BookingService {
 
     private RouteRepository routeRepo;
 
-    private SeatCounterRepository seatCountRepo;
+    private SeatCountRepository seatCountRepo;
 
     private BookingRepository bookingRepo;
 
     private SeatNoTrackerRepository seatNoTrackerRepo;
 
     public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
-                          SeatCounterRepository seatCountRepo,BookingRepository bookingRepo,
+                          SeatCountRepository seatCountRepo, BookingRepository bookingRepo,
                           SeatNoTrackerRepository seatNoTrackerRepo) {
 
         this.routeRepo = routeRepo;
@@ -83,6 +81,7 @@ public class BookingService {
         int noOfPsngr = request.getPassengers().size();
         seatNumbers.addAll(getSeatNumbers(noOfPsngr,request));
 
+        int seatCount = getSeatCount(request);
         int seatNumber;
         int i = 0;
         for (Passenger psngr : request.getPassengers()) {
@@ -92,6 +91,7 @@ public class BookingService {
 
                 seatNumber = seatNumbers.get(i);
                 BOOKING_STATUS = BookingStatus.CONFIRMED;
+                seatCount++;
             }
             else {
 
@@ -108,11 +108,16 @@ public class BookingService {
                     )
             );
 
+
             pnrs.add(i,bkng.getPnr());
 
             i++;
 
         }
+
+        seatCountRepo.updateSeatCount(request.getTrainNo(),request.getJourneyClass(),
+                                      LocalDate.parse(request.getStartDt()),
+                                      LocalDate.parse(request.getEndDt()),seatCount);
 
         BookingResponse bookingResponse = mapper.map(request, BookingResponse.class);
         bookingResponse.setBookingDateTime(Timestamp.from(Instant.now()));
@@ -154,10 +159,7 @@ public class BookingService {
         List<Integer> childRoutes = getChildRoutes(request.getFrom(), request.getTo());
         routeIDS.addAll(childRoutes);
 
-        int seatsBooked = seatCountRepo.findSeatCount(request.getTrainNo(),
-                request.getJourneyClass(),LocalDate.parse(request.getStartDt()),
-                LocalDate.parse(request.getEndDt()));
-
+        int seatsBooked = getSeatCount(request);
 
         //Retrieve Last Allotted Seat Number
         SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
@@ -198,6 +200,16 @@ public class BookingService {
         seatNums.addAll(filterByAvlbSeatNums(seatNums,request));
 
         return seatNums;
+    }
+
+    private Integer getSeatCount(BookingRequest request){
+
+        int seatCount = seatCountRepo.findSeatCount(request.getTrainNo(),
+                                                    request.getJourneyClass(),
+                                                    LocalDate.parse(request.getStartDt()),
+                                                    LocalDate.parse(request.getEndDt()));
+
+        return seatCount;
     }
 
     private List<Integer> getSeatNumsBefore(BookingRequest request){

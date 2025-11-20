@@ -10,12 +10,12 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name="SeatCounter")
+@Table(name="SeatCount")
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class SeatCounter {
+public class SeatCount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
