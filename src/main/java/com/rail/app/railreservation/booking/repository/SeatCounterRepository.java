@@ -3,12 +3,8 @@ package com.rail.app.railreservation.booking.repository;
 import com.rail.app.railreservation.booking.entity.SeatCounter;
 import com.rail.app.railreservation.common.enums.JourneyClass;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import java.time.LocalDate;
 
@@ -24,9 +20,11 @@ public interface SeatCounterRepository extends JpaRepository<SeatCounter,Integer
                          @Param("count") int count, @Param("doj") LocalDate doj, @Param("class") JourneyClass journeyClass);
 */
     @Query("SELECT s.seatCount FROM SeatCounter s " +
-            "WHERE s.trainNo=:trainNo AND s.routeID=:routeID " +
-            "AND s.journeyClass=:journeyClass AND s.startDate=:startDt AND s.endDate=:endDt")
-    Integer findSeatCount(@Param("trainNo") int trainNo,@Param("routeID") Integer routeID,
+            "WHERE s.trainNo=:trainNo " +
+            "AND s.journeyClass=:journeyClass " +
+            "AND s.startDate=:startDt " +
+            "AND s.endDate=:endDt")
+    Integer findSeatCount(@Param("trainNo") int trainNo,
                           @Param("journeyClass") JourneyClass journeyClass,
                           @Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate);
 }
