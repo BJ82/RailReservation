@@ -22,9 +22,16 @@ public class SeatCount {
     int id;
 
     private int trainNo;
-    private int routeID;
     private LocalDate startDate;
     private LocalDate endDate;
     private JourneyClass journeyClass;
     private int seatCount;
+
+    public SeatCount(int trainNo, LocalDate startDate, LocalDate endDate, JourneyClass journeyClass, int seatCount) {
+        this.trainNo = trainNo;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.journeyClass = journeyClass;
+        this.seatCount = seatCount;
+    }
 }

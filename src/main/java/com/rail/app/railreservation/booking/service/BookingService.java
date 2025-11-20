@@ -1,11 +1,8 @@
 package com.rail.app.railreservation.booking.service;
 
-import com.rail.app.railreservation.booking.dto.BookedPassenger;
-import com.rail.app.railreservation.booking.dto.BookingResponse;
+import com.rail.app.railreservation.booking.dto.*;
 import com.rail.app.railreservation.booking.entity.SeatNoTracker;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.booking.dto.BookingRequest;
-import com.rail.app.railreservation.booking.dto.Passenger;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCountRepository;
@@ -64,6 +61,10 @@ public class BookingService {
     }
 
     ModelMapper mapper = new ModelMapper();
+
+    public OpenBookingResponse openBooking(){
+
+    }
 
     public BookingResponse book(BookingRequest request) throws InvalidBookingException{
 

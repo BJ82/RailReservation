@@ -27,4 +27,12 @@ public class SeatNoTracker {
     private LocalDate startDt;
     private LocalDate endDt;
     private int lstSeatNum;
+
+    public SeatNoTracker(int trainNo, JourneyClass journeyClass, LocalDate startDt, LocalDate endDt, int lstSeatNum) {
+        this.trainNo = trainNo;
+        this.journeyClass = journeyClass;
+        this.startDt = startDt;
+        this.endDt = endDt;
+        this.lstSeatNum = lstSeatNum;
+    }
 }
