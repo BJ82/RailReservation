@@ -1,20 +1,14 @@
 package com.rail.app.railreservation.booking.controller;
 
-import com.rail.app.railreservation.booking.dto.BookingOpenRequest;
-import com.rail.app.railreservation.booking.dto.BookingOpenResponse;
-import com.rail.app.railreservation.booking.dto.BookingRequest;
-import com.rail.app.railreservation.booking.dto.BookingResponse;
-import com.rail.app.railreservation.booking.dto.OpenBookingResponse;
+import com.rail.app.railreservation.booking.dto.*;
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
+import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.booking.service.BookingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -34,7 +28,7 @@ public class BookingController {
     }
 
     @PostMapping("book")
-    public ResponseEntity<BookingResponse> bookTicket(@RequestBody BookingRequest bookingRequest) throws InvalidBookingException {
+    public ResponseEntity<BookingResponse> bookTicket(@RequestBody BookingRequest bookingRequest) throws InvalidBookingException, BookingNotOpenException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);
         logger.info("Processing Request For Ticket Booking");
@@ -50,9 +44,23 @@ public class BookingController {
     }
 
     @PostMapping("open")
-    public ResponseEntity<BookingOpenResponse> openBooking(@RequestBody BookingOpenRequest openBookingRequest) throws BookingCannotOpenException {
+    public ResponseEntity<BookingOpenResponse> openBooking(@RequestBody BookingOpenRequest bookingOpenRequest) throws BookingCannotOpenException {
 
-        bookingService.openBooking();
+        logger.info(INSIDE_BOOKING_CONTROLLER);
+        logger.info("Processing Request To Open Booking");
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                .path("/{id}")
+                .buildAndExpand(bookingOpenRequest.getTrainNo())
+                .toUri();
+
+        return ResponseEntity.created(location).body(bookingService.openBooking(bookingOpenRequest));
+    }
+
+    @GetMapping("open/status")
+    public ResponseEntity<BookingOpenInfo> findBookingOpenInfo(@RequestParam("trainNo") int trainNo){
+
+        return ResponseEntity.ok(bookingService.getBookingOpenInfo(trainNo));
     }
 
 }

@@ -1,6 +1,7 @@
 package com.rail.app.railreservation.common;
 
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
+import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.controller.TrainsController;
@@ -62,5 +63,12 @@ public class GlobalExceptionHandler {
 
         logger.error(bkngcnnotopnex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause",bkngcnnotopnex.getMessage()).body(bkngcnnotopnex.getMessage());
+    }
+
+    @ExceptionHandler(BookingNotOpenException.class)
+    public ResponseEntity<String> bookingNotOpenExceptionHandler(BookingNotOpenException bkngnotopnex ){
+
+        logger.error(bkngnotopnex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause",bkngnotopnex.getMessage()).body(bkngnotopnex.getMessage());
     }
 }
