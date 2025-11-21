@@ -1,9 +1,11 @@
 package com.rail.app.railreservation.booking.controller;
 
+import com.rail.app.railreservation.booking.dto.BookingOpenRequest;
+import com.rail.app.railreservation.booking.dto.BookingOpenResponse;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.dto.BookingResponse;
-import com.rail.app.railreservation.booking.dto.OpenBookingRequest;
 import com.rail.app.railreservation.booking.dto.OpenBookingResponse;
+import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.booking.service.BookingService;
 import org.apache.logging.log4j.LogManager;
@@ -48,7 +50,7 @@ public class BookingController {
     }
 
     @PostMapping("open")
-    public ResponseEntity<OpenBookingResponse> openBooking(@RequestBody OpenBookingRequest openBookingRequest){
+    public ResponseEntity<BookingOpenResponse> openBooking(@RequestBody BookingOpenRequest openBookingRequest) throws BookingCannotOpenException {
 
         bookingService.openBooking();
     }

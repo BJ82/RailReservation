@@ -1,13 +1,18 @@
 package com.rail.app.railreservation.booking.service;
 
 import com.rail.app.railreservation.booking.dto.*;
+import com.rail.app.railreservation.booking.entity.BookingOpen;
+import com.rail.app.railreservation.booking.entity.SeatCount;
 import com.rail.app.railreservation.booking.entity.SeatNoTracker;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.entity.Booking;
+import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
+import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCountRepository;
 import com.rail.app.railreservation.booking.repository.SeatNoTrackerRepository;
 import com.rail.app.railreservation.common.entity.Train;
+import com.rail.app.railreservation.common.enums.JourneyClass;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
@@ -47,22 +52,55 @@ public class BookingService {
 
     private SeatNoTrackerRepository seatNoTrackerRepo;
 
+    private BookingOpenRepository bookingOpenRepo;
+
     public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
                           SeatCountRepository seatCountRepo, BookingRepository bookingRepo,
-                          SeatNoTrackerRepository seatNoTrackerRepo) {
+                          SeatNoTrackerRepository seatNoTrackerRepo,
+                          BookingOpenRepository bookingOpenRepo) {
 
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
         this.seatCountRepo = seatCountRepo;
         this.bookingRepo = bookingRepo;
         this.seatNoTrackerRepo = seatNoTrackerRepo;
+        this.bookingOpenRepo = bookingOpenRepo;
         this.seatNumbers = Collections.synchronizedList(new ArrayList<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
 
     ModelMapper mapper = new ModelMapper();
 
-    public OpenBookingResponse openBooking(){
+    public BookingOpenResponse openBooking(BookingOpenRequest request) throws BookingCannotOpenException {
+
+        LocalDate startDt = LocalDate.parse(request.getStartDt());
+
+        if(startDt.isBefore(LocalDate.now()))
+            throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
+
+        Train trn = trainRepo.findByTrainNo(request.getTrainNo())
+                .orElseThrow(() -> new BookingCannotOpenException("Not Allowed To Open Booking On Non Existent Train"));
+
+
+        bookingOpenRepo.save(new BookingOpen(request.getTrainNo(),LocalDate.parse(request.getStartDt()),
+                                             LocalDate.parse(request.getEndDt()),true,
+                                             Timestamp.from(Instant.now())
+                                            )
+                            );
+
+        for(JourneyClass jrnyClass = JourneyClass.values()){
+
+            seatNoTrackerRepo.save(new SeatNoTracker(request.getTrainNo(),
+                    request.getJourneyClass(),
+                    LocalDate.parse(request.getStartDt()),
+                    LocalDate.parse(request.getEndDt()),0));
+
+
+            seatCountRepo.save(new SeatCount(request.getTrainNo(),
+                    request.getJourneyClass(),
+                    LocalDate.parse(request.getStartDt()),
+                    LocalDate.parse(request.getEndDt()),0));
+        }
 
     }
 

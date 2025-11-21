@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OpenBookingResponse {
+public class BookingOpenRequest {
 
     private int trainNo;
     private String startDt;
     private String endDt;
-    private boolean isBookingOpen;
+
+
 }
