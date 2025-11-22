@@ -1,7 +1,6 @@
 package com.rail.app.railreservation.trainmanagement.entity;
 
 import com.rail.app.railreservation.common.enums.Day;
-import com.rail.app.railreservation.trainmanagement.dto.TrainTiming;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +19,7 @@ public class TimeTable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+
     private Integer timeTableID;
 
     private String trainName;

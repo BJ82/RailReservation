@@ -1,20 +1,16 @@
 package com.rail.app.railreservation.trainmanagement.controller;
 
+import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableAddResponse;
-import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
-import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
-import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableWithoutTrainException;
 import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -47,6 +43,18 @@ public class TimeTableController {
                 .toUri();
 
         return ResponseEntity.created(location).body(timeTableAddResponse);
+
+    }
+
+    @GetMapping("train/{trainNo}")
+    public ResponseEntity<TimeTableEnquiryResponse> getTimeTable(@PathVariable("trainNo") int trainNo) throws TimeTableNotFoundException {
+
+        logger.info(INSIDE_TIME_TABLE_CONTROLLER);
+        logger.info("Processing Request To Get The Time Table For TrainNo:{}",trainNo);
+
+        TimeTableEnquiryResponse timeTableEnquiryResponse = timeTableService.getTimeTable(trainNo);
+
+        return ResponseEntity.ok().body(timeTableEnquiryResponse);
 
     }
 }

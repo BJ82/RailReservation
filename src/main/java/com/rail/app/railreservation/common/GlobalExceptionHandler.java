@@ -2,9 +2,9 @@ package com.rail.app.railreservation.common;
 
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
-import com.rail.app.railreservation.trainmanagement.controller.TrainsController;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableWithoutTrainException;
@@ -70,5 +70,21 @@ public class GlobalExceptionHandler {
 
         logger.error(bkngnotopnex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause",bkngnotopnex.getMessage()).body(bkngnotopnex.getMessage());
+    }
+
+    @ExceptionHandler(TimeTableNotFoundException.class)
+    public ResponseEntity<String> timeTableNotFoundExceptionHandler(TimeTableNotFoundException timeTableNotFoundEx){
+
+        String message = timeTableNotFoundEx.getMessage();
+
+        if(timeTableNotFoundEx.getCause() != null){
+
+            message = timeTableNotFoundEx.getMessage()+" "+timeTableNotFoundEx.getCause().getMessage();
+            logger.error(message);
+        }
+        else
+            logger.error(message);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
 }
