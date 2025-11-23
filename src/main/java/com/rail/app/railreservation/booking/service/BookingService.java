@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -77,7 +78,7 @@ public class BookingService {
 
         logger.info(INSIDE_BOOKING_SERVICE);
 
-        LocalDate startDt = LocalDate.parse(request.getStartDt());
+        LocalDate startDt = toLocalDate(request.getStartDt());
 
         if(startDt.isBefore(LocalDate.now()))
             throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
@@ -88,8 +89,8 @@ public class BookingService {
         logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
                     request.getTrainNo(),request.getStartDt(),request.getEndDt());
 
-        bookingOpenRepo.save(new BookingOpen(request.getTrainNo(),LocalDate.parse(request.getStartDt()),
-                                             LocalDate.parse(request.getEndDt()),true,
+        bookingOpenRepo.save(new BookingOpen(request.getTrainNo(),toLocalDate(request.getStartDt()),
+                                             toLocalDate(request.getEndDt()),true,
                                              Timestamp.from(Instant.now())
                                             )
                             );
@@ -97,15 +98,15 @@ public class BookingService {
         for(JourneyClass jrnyClass:JourneyClass.values()){
 
             seatNoTrackerRepo.save(new SeatNoTracker(request.getTrainNo(),
-                                                     jrnyClass,LocalDate.parse(request.getStartDt()),
-                                                     LocalDate.parse(request.getEndDt()),0
+                                                     jrnyClass,toLocalDate(request.getStartDt()),
+                                                     toLocalDate(request.getEndDt()),0
                                                     )
                                   );
 
 
             seatCountRepo.save(new SeatCount(request.getTrainNo(),
-                                             LocalDate.parse(request.getStartDt()),
-                                             LocalDate.parse(request.getEndDt()),jrnyClass,0
+                                             toLocalDate(request.getStartDt()),
+                                             toLocalDate(request.getEndDt()),jrnyClass,0
                                             )
                               );
         }
@@ -174,9 +175,9 @@ public class BookingService {
             }
 
             Booking bkng = bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
-                            request.getTrainNo(),LocalDate.parse(request.getStartDt()),
-                            LocalDate.parse(request.getEndDt()),
-                            request.getFrom(),request.getTo(),LocalDate.parse(request.getDoj()),
+                            request.getTrainNo(),toLocalDate(request.getStartDt()),
+                            toLocalDate(request.getEndDt()),
+                            request.getFrom(),request.getTo(),toLocalDate(request.getDoj()),
                             request.getJourneyClass(), BOOKING_STATUS,Timestamp.from(Instant.now()),
                             seatNumber
                     )
@@ -190,19 +191,20 @@ public class BookingService {
         }
 
         seatCountRepo.updateSeatCount(request.getTrainNo(),request.getJourneyClass(),
-                                      LocalDate.parse(request.getStartDt()),
-                                      LocalDate.parse(request.getEndDt()),seatCount);
+                                      toLocalDate(request.getStartDt()),
+                                      toLocalDate(request.getEndDt()),seatCount);
 
         BookingResponse bookingResponse = mapper.map(request, BookingResponse.class);
         bookingResponse.setBookingDateTime(Timestamp.from(Instant.now()));
 
-        i = 0;
-        for(BookedPassenger bookedPassenger:bookingResponse.getPassengerList()){
+        BookedPassenger bookedPassenger;
+        for(int j=0;j<noOfPsngr;j++){
 
+            bookedPassenger = new BookedPassenger();
 
-            if(i < seatNumbers.size()){
+            if(j < seatNumbers.size()){
 
-                seatNumber = seatNumbers.get(i);
+                seatNumber = seatNumbers.get(j);
                 BOOKING_STATUS = BookingStatus.CONFIRMED;
             }
             else {
@@ -211,11 +213,15 @@ public class BookingService {
                 BOOKING_STATUS = BookingStatus.WAITING;
             }
 
-            bookedPassenger.setPnr(pnrs.get(i));
+            bookedPassenger.setName(request.getPassengers().get(j).getName());
+            bookedPassenger.setAge(request.getPassengers().get(j).getAge());
+            bookedPassenger.setSex(request.getPassengers().get(j).getSex());
+            bookedPassenger.setPnr(pnrs.get(j));
             bookedPassenger.setSeatNo(seatNumber);
             bookedPassenger.setStatus(BOOKING_STATUS);
 
-            i++;
+            bookingResponse.getPassengerList().add(bookedPassenger);
+
         }
 
         logger.info("Completed Ticket Booking For TrainNo:{}, StartDate:{}, EndDate:{}",
@@ -226,10 +232,15 @@ public class BookingService {
 
     private Optional<Boolean> isBookingOpen(BookingRequest request){
 
-        return bookingOpenRepo.isBookingOpen(request.getTrainNo(),LocalDate.parse(request.getStartDt()),
-                LocalDate.parse(request.getEndDt()));
+        return bookingOpenRepo.isBookingOpen(request.getTrainNo(),toLocalDate(request.getStartDt()),
+                toLocalDate(request.getEndDt()));
     }
 
+    private LocalDate toLocalDate(String dateAsString){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
+        return LocalDate.parse(dateAsString,formatter);
+    }
 
     private List<Integer> getSeatNumbers(int noOfPsngr,BookingRequest request){
 
@@ -247,8 +258,8 @@ public class BookingService {
         //Retrieve Last Allotted Seat Number
         SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
                 request.getJourneyClass(),
-                LocalDate.parse(request.getStartDt()),
-                LocalDate.parse(request.getEndDt())
+                toLocalDate(request.getStartDt()),
+                toLocalDate(request.getEndDt())
         );
 
         List<Integer> seatNums;
@@ -256,7 +267,7 @@ public class BookingService {
 
         AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
 
-        int seatsAvailable = 50 - seatsBooked;
+        int seatsAvailable = 4 - seatsBooked;
         for(int i=1;i<=seatsAvailable;i++){
 
             seatNums.add(lstAllotedSeatNum.addAndGet(1));
@@ -289,8 +300,8 @@ public class BookingService {
 
         int seatCount = seatCountRepo.findSeatCount(request.getTrainNo(),
                                                     request.getJourneyClass(),
-                                                    LocalDate.parse(request.getStartDt()),
-                                                    LocalDate.parse(request.getEndDt()));
+                                                    toLocalDate(request.getStartDt()),
+                                                    toLocalDate(request.getEndDt()));
 
         return seatCount;
     }
@@ -307,8 +318,8 @@ public class BookingService {
             for(int j=i+1;j<=stns.indexOf(request.getFrom());j++){
                 dest = stns.get(j);
                 seatNums.addAll(bookingRepo.findSeatNumbers( src,dest,request.getTrainNo(),
-                                LocalDate.parse(request.getStartDt()),
-                                LocalDate.parse(request.getEndDt()),
+                                toLocalDate(request.getStartDt()),
+                                toLocalDate(request.getEndDt()),
                                 request.getJourneyClass()
                         )
                 );
@@ -329,8 +340,8 @@ public class BookingService {
 
             count = bookingRepo.findCountOfSeatNumber(request.getTrainNo(),
                                                       request.getJourneyClass(),
-                                                      LocalDate.parse(request.getStartDt()),
-                                                      LocalDate.parse(request.getEndDt()),num
+                                                      toLocalDate(request.getStartDt()),
+                                                      toLocalDate(request.getEndDt()),num
                                                      );
             if(count == 1){
                 avlblSeatNums.add(num);
@@ -338,8 +349,8 @@ public class BookingService {
             else if(count > 1){
                 List<Booking> bookings = bookingRepo.findBySeatNo(num,request.getTrainNo(),
                                                                   request.getJourneyClass(),
-                                                                  LocalDate.parse(request.getStartDt()),
-                                                                  LocalDate.parse(request.getEndDt()));
+                                                                  toLocalDate(request.getStartDt()),
+                                                                  toLocalDate(request.getEndDt()));
 
                 String src;
                 String dest;
@@ -375,8 +386,8 @@ public class BookingService {
             for (int j = i + 1; j < stns.size(); j++) {
                 dest = stns.get(j);
                 seatNums.addAll(bookingRepo.findSeatNumbers(src, dest, request.getTrainNo(),
-                                LocalDate.parse(request.getStartDt()),
-                                LocalDate.parse(request.getEndDt()),
+                                toLocalDate(request.getStartDt()),
+                                toLocalDate(request.getEndDt()),
                                 request.getJourneyClass()
                         )
                 );

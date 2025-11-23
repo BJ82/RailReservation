@@ -29,8 +29,8 @@ public interface SeatCountRepository extends JpaRepository<SeatCount,Integer> {
     @Query("SELECT s.seatCount FROM SeatCount s " +
             "WHERE s.trainNo=:trainNo " +
             "AND s.journeyClass=:journeyClass " +
-            "AND s.startDate=:startDt " +
-            "AND s.endDate=:endDt")
+            "AND s.startDate=:startDate " +
+            "AND s.endDate=:endDate")
     Integer findSeatCount(@Param("trainNo") int trainNo,
                           @Param("journeyClass") JourneyClass journeyClass,
                           @Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate);
