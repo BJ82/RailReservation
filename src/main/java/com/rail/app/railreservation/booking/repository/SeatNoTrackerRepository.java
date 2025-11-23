@@ -1,15 +1,14 @@
 package com.rail.app.railreservation.booking.repository;
 
-import com.rail.app.railreservation.common.enums.JourneyClass;
-import org.springframework.cglib.core.Local;
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.rail.app.railreservation.booking.entity.SeatNoTracker;
+import com.rail.app.railreservation.common.enums.JourneyClass;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public interface SeatNoTrackerRepository extends JpaRepository<SeatNoTracker,Integer> {
 
@@ -23,4 +22,18 @@ public interface SeatNoTrackerRepository extends JpaRepository<SeatNoTracker,Int
                                     @Param("startDt") LocalDate startDt,
                                     @Param("endDt") LocalDate endDt
                                    );
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE SeatNoTracker snt " +
+            "SET snt.lstSeatNum = :lastSeatNo " +
+            "WHERE snt.trainNo = :trainNo " +
+            "AND snt.journeyClass = :journeyClass " +
+            "AND snt.startDt = :startDate " +
+            "AND snt.endDt = :endDate")
+    void updateLastSeatNo(@Param("trainNo") int trainNo,
+                          @Param("journeyClass") JourneyClass journeyClass,
+                          @Param("startDate") LocalDate startDt,
+                          @Param("endDate") LocalDate endDt,
+                          @Param("lastSeatNo") int lstSeatNum);
 }

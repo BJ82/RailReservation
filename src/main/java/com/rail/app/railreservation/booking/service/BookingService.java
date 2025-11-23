@@ -38,7 +38,7 @@ public class BookingService {
 
     private static final String INSIDE_BOOKING_SERVICE = "Inside Booking Service...";
 
-    private final List<Integer> seatNumbers;
+    private final Set<Integer> seatNumbers;
 
     private BookingStatus BOOKING_STATUS = BookingStatus.CONFIRMED;
 
@@ -67,7 +67,7 @@ public class BookingService {
         this.bookingRepo = bookingRepo;
         this.seatNoTrackerRepo = seatNoTrackerRepo;
         this.bookingOpenRepo = bookingOpenRepo;
-        this.seatNumbers = Collections.synchronizedList(new ArrayList<>());
+        this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
 
@@ -157,14 +157,14 @@ public class BookingService {
         seatNumbers.addAll(getSeatNumbers(noOfPsngr,request));
 
         int seatCount = getSeatCount(request);
-        int seatNumber;
+        int seatNumber = 0;
         int i = 0;
         for (Passenger psngr : request.getPassengers()) {
 
 
             if(i < seatNumbers.size()){
 
-                seatNumber = seatNumbers.get(i);
+                seatNumber = new ArrayList<>(seatNumbers).get(i);
                 BOOKING_STATUS = BookingStatus.CONFIRMED;
                 seatCount++;
             }
@@ -190,6 +190,10 @@ public class BookingService {
 
         }
 
+        seatNoTrackerRepo.updateLastSeatNo(request.getTrainNo(),request.getJourneyClass(),
+                                           toLocalDate(request.getStartDt()),
+                                           toLocalDate(request.getEndDt()),seatNumber);
+
         seatCountRepo.updateSeatCount(request.getTrainNo(),request.getJourneyClass(),
                                       toLocalDate(request.getStartDt()),
                                       toLocalDate(request.getEndDt()),seatCount);
@@ -200,11 +204,11 @@ public class BookingService {
         BookedPassenger bookedPassenger;
         for(int j=0;j<noOfPsngr;j++){
 
-            bookedPassenger = new BookedPassenger();
+            bookedPassenger = mapper.map(request.getPassengers().get(j),BookedPassenger.class);
 
             if(j < seatNumbers.size()){
 
-                seatNumber = seatNumbers.get(j);
+                seatNumber = new ArrayList<>(seatNumbers).get(j);
                 BOOKING_STATUS = BookingStatus.CONFIRMED;
             }
             else {
@@ -213,9 +217,6 @@ public class BookingService {
                 BOOKING_STATUS = BookingStatus.WAITING;
             }
 
-            bookedPassenger.setName(request.getPassengers().get(j).getName());
-            bookedPassenger.setAge(request.getPassengers().get(j).getAge());
-            bookedPassenger.setSex(request.getPassengers().get(j).getSex());
             bookedPassenger.setPnr(pnrs.get(j));
             bookedPassenger.setSeatNo(seatNumber);
             bookedPassenger.setStatus(BOOKING_STATUS);
@@ -242,7 +243,7 @@ public class BookingService {
         return LocalDate.parse(dateAsString,formatter);
     }
 
-    private List<Integer> getSeatNumbers(int noOfPsngr,BookingRequest request){
+    private Set<Integer> getSeatNumbers(int noOfPsngr,BookingRequest request){
 
         List<Integer> routeIDS = new ArrayList<>();
         routeIDS.add(getRouteId(request.getFrom(), request.getTo()).get());
@@ -262,12 +263,12 @@ public class BookingService {
                 toLocalDate(request.getEndDt())
         );
 
-        List<Integer> seatNums;
-        seatNums = Collections.synchronizedList(new ArrayList<>());
+        Set<Integer> seatNums;
+        seatNums = Collections.synchronizedSet(new LinkedHashSet<>());
 
         AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
 
-        int seatsAvailable = 4 - seatsBooked;
+        int seatsAvailable = 4 - seatNoTracker.getLstSeatNum();
         for(int i=1;i<=seatsAvailable;i++){
 
             seatNums.add(lstAllotedSeatNum.addAndGet(1));
@@ -276,9 +277,11 @@ public class BookingService {
 
         //Save Last Allotted Seat Number
 
-        seatNoTracker.setLstSeatNum(seatNums.getLast());
-        seatNoTrackerRepo.save(seatNoTracker);
+        /*if(!seatNums.isEmpty()){
 
+            seatNoTracker.setLstSeatNum(new ArrayList<>(seatNums).getLast());
+            seatNoTrackerRepo.save(seatNoTracker);
+        }*/
 
         //Add Seat Nums Which Will Be De-Occupied
         //Before Our Journey Starts
@@ -292,6 +295,21 @@ public class BookingService {
 
         seatNums.addAll(getSeatNumsAfter(request));
         seatNums.addAll(filterByAvlbSeatNums(seatNums,request));
+
+        seatNums.addAll(removeSeatNoBySrcAndDest(seatNums,request));
+
+        return seatNums;
+    }
+
+    private Set<Integer> removeSeatNoBySrcAndDest(Set<Integer> seatNums,BookingRequest request){
+
+        List<Integer> seatNosToRemove =  bookingRepo.findSeatNumbers(request.getFrom(),request.getTo(),request.getTrainNo(),
+                                                                    toLocalDate(request.getStartDt()),toLocalDate(request.getEndDt()),
+                                                                    request.getJourneyClass());
+
+        for(Integer seatNo:seatNosToRemove){
+            seatNums.remove(seatNo);
+        }
 
         return seatNums;
     }
@@ -332,7 +350,7 @@ public class BookingService {
         return seatNums;
     }
 
-    private List<Integer> filterByAvlbSeatNums(List<Integer> seatNums,BookingRequest request){
+    private List<Integer> filterByAvlbSeatNums(Set<Integer> seatNums,BookingRequest request){
 
         List<Integer> avlblSeatNums = new ArrayList<>();
         int count = 0;
