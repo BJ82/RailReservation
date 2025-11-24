@@ -20,6 +20,7 @@ import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.appender.routing.Routes;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -154,6 +155,7 @@ public class BookingService {
                      request.getTrainNo(),request.getStartDt(),request.getEndDt());
 
         int noOfPsngr = request.getPassengers().size();
+        seatNumbers.clear();
         seatNumbers.addAll(getSeatNumbers(noOfPsngr,request));
 
         int seatCount = getSeatCount(request);
@@ -288,19 +290,6 @@ public class BookingService {
         seatNums.addAll(getSeatNumsAfter(request));
         filterSeatNums(seatNums,request);
 
-
-        return seatNums;
-    }
-
-    private Set<Integer> removeSeatNoBySrcAndDest(Set<Integer> seatNums,BookingRequest request){
-
-        List<Integer> seatNosToRemove =  bookingRepo.findSeatNumbers(request.getFrom(),request.getTo(),request.getTrainNo(),
-                                                                    toLocalDate(request.getStartDt()),toLocalDate(request.getEndDt()),
-                                                                    request.getJourneyClass());
-
-        for(Integer seatNo:seatNosToRemove){
-            seatNums.remove(seatNo);
-        }
 
         return seatNums;
     }
@@ -445,6 +434,14 @@ public class BookingService {
     private List<Integer> getOverlappingRoutes(String src, String dest){
 
         List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+
+        List<Route> overlappingRoutes = new ArrayList<>(routes);
+
+        for(Route route:overlappingRoutes){
+
+            if(route.getStations().getLast().equals(src) || route.getStations().getFirst().equals(dest))
+                routes.remove(route);
+        }
 
         return routes.stream().map(r->r.getRouteID()).collect(Collectors.toList());
 
