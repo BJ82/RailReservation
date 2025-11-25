@@ -20,7 +20,6 @@ import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.appender.routing.Routes;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +83,7 @@ public class BookingService {
         if(startDt.isBefore(LocalDate.now()))
             throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
 
-        Train trn = trainRepo.findByTrainNo(request.getTrainNo())
+        trainRepo.findByTrainNo(request.getTrainNo())
                 .orElseThrow(() -> new BookingCannotOpenException("Not Allowed To Open Booking On Non Existent Train"));
 
         logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
@@ -154,9 +153,11 @@ public class BookingService {
         logger.info("Processing Ticket Booking For TrainNo:{}, StartDate:{}, EndDate:{}",
                      request.getTrainNo(),request.getStartDt(),request.getEndDt());
 
-        int noOfPsngr = request.getPassengers().size();
+
         seatNumbers.clear();
-        seatNumbers.addAll(getSeatNumbers(noOfPsngr,request));
+        seatNumbers.addAll(getSeatNumbers(request));
+
+        pnrs.clear();
 
         int seatCount = getSeatCount(request);
         int seatNumber = 0;
@@ -213,6 +214,9 @@ public class BookingService {
         bookingResponse.setBookingDateTime(Timestamp.from(Instant.now()));
 
         BookedPassenger bookedPassenger;
+
+        int noOfPsngr = request.getPassengers().size();
+
         for(int j=0;j<noOfPsngr;j++){
 
             bookedPassenger = mapper.map(request.getPassengers().get(j),BookedPassenger.class);
@@ -254,7 +258,7 @@ public class BookingService {
         return LocalDate.parse(dateAsString,formatter);
     }
 
-    private Set<Integer> getSeatNumbers(int noOfPsngr,BookingRequest request){
+    private Set<Integer> getSeatNumbers(BookingRequest request){
 
 
         //Retrieve Last Allotted Seat Number
@@ -267,28 +271,27 @@ public class BookingService {
         Set<Integer> seatNums;
         seatNums = Collections.synchronizedSet(new LinkedHashSet<>());
 
-        AtomicInteger lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
+        AtomicInteger lstAllotedSeatNum;
+        lstAllotedSeatNum = new AtomicInteger(seatNoTracker.getLstSeatNum());
 
         int seatsAvailable = 4 - seatNoTracker.getLstSeatNum();
+
         for(int i=1;i<=seatsAvailable;i++){
 
             seatNums.add(lstAllotedSeatNum.addAndGet(1));
         }
 
 
-        //Add Seat Nums Which Will Be De-Occupied
-        //Before Our Journey Starts
+        //Obtain Seat Nos which would be free
+        //Before Journey Starts
 
-        seatNums.addAll(getSeatNumsBefore(request));
-        filterSeatNums(seatNums,request);
-
+        seatNums.addAll(getSeatNosBefore(request));
 
 
-        //Add Seat Nums Which Will Be Occupied
-        //After Our Journey Ends
+        //Obtain Seat Nos which would be used
+        //After Journey Ends
 
-        seatNums.addAll(getSeatNumsAfter(request));
-        filterSeatNums(seatNums,request);
+        seatNums.addAll(getSeatNosAfter(request));
 
 
         return seatNums;
@@ -304,33 +307,41 @@ public class BookingService {
         return seatCount;
     }
 
-    private List<Integer> getSeatNumsBefore(BookingRequest request){
+    private Set<Integer> getSeatNosBefore(BookingRequest request){
 
-        String src;
-        String dest;
-        List<String> stns = getAllStations(request.getTrainNo());
-        List<Integer> seatNums = new ArrayList<>();
+        String src,dest;
 
-        for(int i=0;i<=stns.indexOf(request.getFrom());i++){
-            src = stns.get(i);
-            for(int j=i+1;j<=stns.indexOf(request.getFrom());j++){
-                dest = stns.get(j);
+        Set<Integer> seatNums = new LinkedHashSet<>();
+
+        List<String> allStations = getAllStations(request.getTrainNo());
+
+        int before = allStations.indexOf(request.getFrom());
+
+        for(int i=0;i<=before;i++){
+
+            src = allStations.get(i);
+
+            for(int j=i+1;j<=before;j++){
+
+                dest = allStations.get(j);
+
                 seatNums.addAll(bookingRepo.findSeatNumbers( src,dest,request.getTrainNo(),
-                                toLocalDate(request.getStartDt()),
-                                toLocalDate(request.getEndDt()),
-                                request.getJourneyClass()
-                        )
-                );
+                                                             toLocalDate(request.getStartDt()),
+                                                             toLocalDate(request.getEndDt()),
+                                                             request.getJourneyClass()
+                                                           )
+                               );
 
                 if(seatNums.size() >= request.getPassengers().size())
                     break;
             }
         }
 
+        filterSeatNos(seatNums,request);
         return seatNums;
     }
 
-    private void filterSeatNums(Set<Integer> seatNums,BookingRequest request){
+    private void filterSeatNos(Set<Integer> seatNums,BookingRequest request){
 
         Set<Integer> seatNosToRetain = new LinkedHashSet<>(seatNums);
 
@@ -341,14 +352,16 @@ public class BookingService {
                                                                   toLocalDate(request.getStartDt()),
                                                                   toLocalDate(request.getEndDt()));
 
-                String src;
-                String dest;
+                String src,dest;
                 Integer routeID;
                 boolean isOverlapp = false;
+
                 for(Booking bkng:bookings){
+
                     src = bkng.getStartFrom();
                     dest = bkng.getEndAt();
                     routeID = getRouteId(src,dest).get();
+
                     isOverlapp = getOverlappingRoutes(request.getFrom(),
                                                       request.getTo()).contains(routeID);
 
@@ -363,28 +376,37 @@ public class BookingService {
         seatNums.addAll(seatNosToRetain);
     }
 
-    private List<Integer> getSeatNumsAfter(BookingRequest request){
+    private Set<Integer> getSeatNosAfter(BookingRequest request){
 
-        String src;
-        String dest;
-        List<String> stns = getAllStations(request.getTrainNo());
-        List<Integer> seatNums = new ArrayList<>();
+        String src,dest;
 
-        for (int i = stns.indexOf(request.getTo()); i < stns.size(); i++) {
-            src = stns.get(i);
-            for (int j = i + 1; j < stns.size(); j++) {
-                dest = stns.get(j);
+        Set<Integer> seatNums = new LinkedHashSet<>();
+
+        List<String> allStations = getAllStations(request.getTrainNo());
+
+        int after = allStations.indexOf(request.getTo());
+
+        for (int i = after; i < allStations.size(); i++) {
+
+            src = allStations.get(i);
+
+            for (int j = i + 1; j < allStations.size(); j++) {
+
+                dest = allStations.get(j);
+
                 seatNums.addAll(bookingRepo.findSeatNumbers(src, dest, request.getTrainNo(),
-                                toLocalDate(request.getStartDt()),
-                                toLocalDate(request.getEndDt()),
-                                request.getJourneyClass()
-                        )
-                );
+                                                            toLocalDate(request.getStartDt()),
+                                                            toLocalDate(request.getEndDt()),
+                                                            request.getJourneyClass()
+                                                           )
+                               );
 
                 if (seatNums.size() >= request.getPassengers().size())
                     break;
             }
         }
+
+        filterSeatNos(seatNums,request);
         return seatNums;
     }
 
