@@ -258,7 +258,7 @@ public class BookingService {
         return LocalDate.parse(dateAsString,formatter);
     }
 
-    private Set<Integer> getSeatNumbers(BookingRequest request){
+    public Set<Integer> getSeatNumbers(BookingRequest request){
 
 
         //Retrieve Last Allotted Seat Number
@@ -332,8 +332,6 @@ public class BookingService {
                                                            )
                                );
 
-                if(seatNums.size() >= request.getPassengers().size())
-                    break;
             }
         }
 
@@ -400,9 +398,6 @@ public class BookingService {
                                                             request.getJourneyClass()
                                                            )
                                );
-
-                if (seatNums.size() >= request.getPassengers().size())
-                    break;
             }
         }
 

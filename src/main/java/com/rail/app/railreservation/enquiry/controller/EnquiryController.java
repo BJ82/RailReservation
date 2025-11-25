@@ -1,13 +1,12 @@
 package com.rail.app.railreservation.enquiry.controller;
 
-import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
+import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
-import com.rail.app.railreservation.enquiry.service.Enquiry;
+import com.rail.app.railreservation.enquiry.service.EnquiryService;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
@@ -20,11 +19,11 @@ public class EnquiryController {
 
     private static final Logger logger = LogManager.getLogger(EnquiryController.class);
 
-    private static final String INSIDE_ENQUIRY_CONTROLLER = "Inside Enquiry Controller...";
+    private static final String INSIDE_ENQUIRY_CONTROLLER = "Inside EnquiryService Controller...";
 
-    private Enquiry enquiryService;
+    private EnquiryService enquiryService;
 
-    public EnquiryController(Enquiry enquiryService) {
+    public EnquiryController(EnquiryService enquiryService) {
         this.enquiryService = enquiryService;
     }
 
@@ -45,6 +44,13 @@ public class EnquiryController {
         logger.info("Processing request to find train with TrainNo:{}",trnNo);
 
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
+    }
+
+    @PostMapping("seats")
+    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest){
+
+
+        return ResponseEntity..body(enquiryService.seatEnquiry(seatEnquiryRequest));
     }
 
 }
