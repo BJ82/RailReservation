@@ -44,17 +44,17 @@ public class BookingService {
 
     private final List<Integer> pnrs;
 
-    private TrainRepository trainRepo;
+    private final TrainRepository trainRepo;
 
-    private RouteRepository routeRepo;
+    private final RouteRepository routeRepo;
 
-    private SeatCountRepository seatCountRepo;
+    private final SeatCountRepository seatCountRepo;
 
-    private BookingRepository bookingRepo;
+    private final BookingRepository bookingRepo;
 
-    private SeatNoTrackerRepository seatNoTrackerRepo;
+    private final SeatNoTrackerRepository seatNoTrackerRepo;
 
-    private BookingOpenRepository bookingOpenRepo;
+    private final BookingOpenRepository bookingOpenRepo;
 
     public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
                           SeatCountRepository seatCountRepo, BookingRepository bookingRepo,
