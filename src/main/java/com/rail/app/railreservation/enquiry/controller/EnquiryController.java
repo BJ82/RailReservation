@@ -6,6 +6,7 @@ import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryExceptio
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.service.EnquiryService;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +49,7 @@ public class EnquiryController {
     }
 
     @PostMapping("seats")
-    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException {
+    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
 
         logger.info(INSIDE_ENQUIRY_CONTROLLER);
         logger.info("Processing request to find available seats");
