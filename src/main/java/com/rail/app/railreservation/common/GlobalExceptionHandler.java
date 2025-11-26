@@ -2,6 +2,7 @@ package com.rail.app.railreservation.common;
 
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
+import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
@@ -86,5 +87,14 @@ public class GlobalExceptionHandler {
             logger.error(message);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
+    }
+
+    @ExceptionHandler(InvalidSeatEnquiryException.class)
+    public ResponseEntity<String> invalidSeatEnquiryExceptionHandler(InvalidSeatEnquiryException invalidSeatEnquiryEx){
+
+        String message = invalidSeatEnquiryEx.getMessage()+" "+invalidSeatEnquiryEx.getCause().getMessage();
+        logger.error(message);
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
     }
 }

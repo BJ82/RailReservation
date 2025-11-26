@@ -9,6 +9,7 @@ import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import org.apache.logging.log4j.LogManager;
@@ -28,10 +29,10 @@ public class EnquiryService {
 
     private static final String INSIDE_ENQUIRY_SERVICE = "Inside EnquiryService Service...";
 
-    private RouteRepository routeRepo;
-    private TrainRepository trainRepo;
+    private final RouteRepository routeRepo;
+    private final TrainRepository trainRepo;
 
-    private BookingService bookingService;
+    private final BookingService bookingService;
 
     ModelMapper mapper = new ModelMapper();
 
@@ -52,8 +53,6 @@ public class EnquiryService {
         logger.info(INSIDE_ENQUIRY_SERVICE);
         logger.info("Searching for trains running between {} and {}",src,dest);
 
-        List<Integer> parentRouteIds = new ArrayList<>();
-
 
         // Step1: Obtain route ID for given source and destination
         Integer routeID = null;
@@ -65,6 +64,9 @@ public class EnquiryService {
 
 
         //Step2: Obtain routes which contain routeID as subroute
+
+        List<Integer> parentRouteIds;
+        parentRouteIds = new ArrayList<>();
         parentRouteIds.addAll(getParentRoutes(src,dest));
 
         logger.info("parentRouteIds size:{}",parentRouteIds.size());
@@ -146,13 +148,32 @@ public class EnquiryService {
 
     }
 
-    public SeatEnquiryResponse seatEnquiry(SeatEnquiryRequest seatEnquiryRequest){
+    public SeatEnquiryResponse seatEnquiry(SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException {
+
+        logger.info(INSIDE_ENQUIRY_SERVICE);
+        logger.info("Searching Available Seats In TrainNo:{}",seatEnquiryRequest.getTrainNo());
+
+
+        String src = seatEnquiryRequest.getStartFrom();
+        String dest = seatEnquiryRequest.getEndAt();
+
+        List<Integer> parentRouteIds;
+        parentRouteIds = new ArrayList<>(getParentRoutes(src, dest));
+
+        List<Train> availableTrains = trainRepo.findByRouteIdIn(parentRouteIds);
+
+        if(availableTrains.isEmpty())
+            throw new InvalidSeatEnquiryException("Invalid Seat Enquiry Because ",
+                                                  new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest));
+
 
         BookingRequest bookingRequest = mapper.map(seatEnquiryRequest,BookingRequest.class);
 
-        int seatsAvailable = bookingService.getSeatNumbers(bookingRequest).size();
 
         SeatEnquiryResponse seatEnquiryResponse = mapper.map(seatEnquiryRequest,SeatEnquiryResponse.class);
+
+        int seatsAvailable;
+        seatsAvailable = bookingService.getSeatNumbers(bookingRequest).size();
         seatEnquiryResponse.setSeatsAvailable(seatsAvailable);
 
         return seatEnquiryResponse;

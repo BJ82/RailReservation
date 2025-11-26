@@ -8,8 +8,8 @@ public class SeatEnquiryRequest {
     private String trainName;
     private String startDt;
     private String endDt;
-    private String from;
-    private String to;
+    private String startFrom;
+    private String endAt;
     private JourneyClass journeyClass;
     private String doj;
 

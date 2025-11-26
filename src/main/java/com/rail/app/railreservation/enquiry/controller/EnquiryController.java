@@ -2,6 +2,7 @@ package com.rail.app.railreservation.enquiry.controller;
 
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
+import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.service.EnquiryService;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
@@ -47,10 +48,15 @@ public class EnquiryController {
     }
 
     @PostMapping("seats")
-    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest){
+    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException {
 
+        logger.info(INSIDE_ENQUIRY_CONTROLLER);
+        logger.info("Processing request to find available seats");
 
-        return ResponseEntity..body(enquiryService.seatEnquiry(seatEnquiryRequest));
+        SeatEnquiryResponse seatEnquiryResponse;
+        seatEnquiryResponse = enquiryService.seatEnquiry(seatEnquiryRequest);
+
+        return ResponseEntity.ok().body(seatEnquiryResponse);
     }
 
 }
