@@ -207,30 +207,47 @@ public class EnquiryService {
         List<Timing> trainTimings;
         trainTimings = timeTableEnquiryResponse.getTrainTimings();
 
-        long totalHours = 0;
+        long totalHours = 0,totalMinutes = 0,minutes = 0;
 
         LocalTime prevDeptTime = toLocalTime(trainTimings.get(0).getDeptTime());
+
         LocalTime arrivalTime, departureTime;
+
+        Duration between1,between2;
+
+        LocalDate arrivalDate = startDate;
 
         for(Timing timing:trainTimings){
 
             arrivalTime = toLocalTime(timing.getArrvTime());
-            Duration between1 = Duration.between(prevDeptTime,arrivalTime);
+            between1 = Duration.between(prevDeptTime,arrivalTime);
 
-            totalHours = totalHours + between1.toHours();
+            minutes = between1.toMinutes();
+
+            if( minutes < 0){
+
+                arrivalDate = arrivalDate.plusDays(1);
+            }
+
 
             if(timing.getStation().equals(stn))
                 break;
 
+
             departureTime = toLocalTime(timing.getDeptTime());
-            Duration between2 = Duration.between(arrivalTime,departureTime);
+            between2 = Duration.between(arrivalTime,departureTime);
 
-            totalHours = totalHours + between2.toHours();
+            minutes = between2.toMinutes();
 
+            if( minutes < 0){
+
+                arrivalDate = arrivalDate.plusDays(1);
+            }
+
+            prevDeptTime = departureTime;
         }
 
-        long day = totalHours/24;
-        return startDate.plusDays(day);
+        return arrivalDate;
     }
 
     private LocalTime toLocalTime(String timeAsString){
