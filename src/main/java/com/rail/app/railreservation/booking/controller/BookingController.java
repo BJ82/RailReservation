@@ -5,6 +5,7 @@ import com.rail.app.railreservation.booking.exception.BookingCannotOpenException
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.booking.service.BookingService;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class BookingController {
     }
 
     @PostMapping("book")
-    public ResponseEntity<BookingResponse> bookTicket(@RequestBody BookingRequest bookingRequest) throws InvalidBookingException, BookingNotOpenException {
+    public ResponseEntity<BookingResponse> bookTicket(@RequestBody BookingRequest bookingRequest) throws InvalidBookingException, BookingNotOpenException, TimeTableNotFoundException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);
         logger.info("Processing Request For Ticket Booking");
@@ -58,7 +59,7 @@ public class BookingController {
     }
 
     @GetMapping("open/status")
-    public ResponseEntity<BookingOpenInfo> findBookingOpenInfo(@RequestParam("trainNo") int trainNo){
+    public ResponseEntity<BookingOpenInfo> isBookingOpen(@RequestParam("trainNo") int trainNo){
 
         return ResponseEntity.ok(bookingService.getBookingOpenInfo(trainNo));
     }

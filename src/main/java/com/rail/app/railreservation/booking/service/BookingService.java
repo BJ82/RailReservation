@@ -18,14 +18,22 @@ import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
+import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
+import com.rail.app.railreservation.trainmanagement.entity.Timing;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
+import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,10 +64,12 @@ public class BookingService {
 
     private final BookingOpenRepository bookingOpenRepo;
 
+    private final TimeTableService timeTableService;
+
     public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
                           SeatCountRepository seatCountRepo, BookingRepository bookingRepo,
                           SeatNoTrackerRepository seatNoTrackerRepo,
-                          BookingOpenRepository bookingOpenRepo) {
+                          BookingOpenRepository bookingOpenRepo, TimeTableService timeTableService) {
 
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
@@ -67,6 +77,7 @@ public class BookingService {
         this.bookingRepo = bookingRepo;
         this.seatNoTrackerRepo = seatNoTrackerRepo;
         this.bookingOpenRepo = bookingOpenRepo;
+        this.timeTableService = timeTableService;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
@@ -133,7 +144,7 @@ public class BookingService {
     }
 
 
-    public BookingResponse book(BookingRequest request) throws InvalidBookingException,BookingNotOpenException{
+    public BookingResponse book(BookingRequest request) throws InvalidBookingException, BookingNotOpenException, TimeTableNotFoundException {
 
         logger.info(INSIDE_BOOKING_SERVICE);
 
@@ -149,6 +160,20 @@ public class BookingService {
         isBookingOpen(request).orElseThrow(()->new BookingNotOpenException("Booking Not Yet Open For TrainNo:"+request.getTrainNo()+" For Dates "+request.getStartDt()+" And "+request.getEndDt()
                                                                       )
                                           );
+
+        //Check if DOJ is Valid
+        String startFrom = request.getFrom();
+
+        LocalDate trainStartDateFrmSource = toLocalDate(request.getStartDt());
+        LocalDate dateOfArrival =  getArrivalDate(request.getTrainNo(),startFrom,trainStartDateFrmSource);
+        LocalDate dateOfJourney = toLocalDate(request.getDoj());
+
+        if(!dateOfArrival.equals(dateOfJourney))
+            throw new InvalidBookingException("Invalid Booking Because ",
+                    new TrainNotFoundException("No Train Found For Date Of Journey: "+dateOfJourney.toString()));
+
+
+
 
         logger.info("Processing Ticket Booking For TrainNo:{}, StartDate:{}, EndDate:{}",
                      request.getTrainNo(),request.getStartDt(),request.getEndDt());
@@ -244,6 +269,63 @@ public class BookingService {
                              request.getTrainNo(),request.getStartDt(),request.getEndDt());
         return bookingResponse;
 
+    }
+
+    private LocalDate getArrivalDate(int trainNo, String stn,LocalDate startDate) throws TimeTableNotFoundException {
+
+        TimeTableEnquiryResponse timeTableEnquiryResponse;
+        timeTableEnquiryResponse = timeTableService.getTimeTable(trainNo);
+
+        List<Timing> trainTimings;
+        trainTimings = timeTableEnquiryResponse.getTrainTimings();
+
+        long minutes = 0;
+
+        LocalTime prevDeptTime = toLocalTime(trainTimings.get(0).getDeptTime());
+
+        LocalTime arrivalTime, departureTime;
+
+        Duration between1,between2;
+
+        LocalDate arrivalDate = startDate;
+
+        for(Timing timing:trainTimings){
+
+            arrivalTime = toLocalTime(timing.getArrvTime());
+            between1 = Duration.between(prevDeptTime,arrivalTime);
+
+            minutes = between1.toMinutes();
+
+            if( minutes < 0){
+
+                arrivalDate = arrivalDate.plusDays(1);
+            }
+
+
+            if(timing.getStation().equals(stn))
+                break;
+
+
+            departureTime = toLocalTime(timing.getDeptTime());
+            between2 = Duration.between(arrivalTime,departureTime);
+
+            minutes = between2.toMinutes();
+
+            if( minutes < 0){
+
+                arrivalDate = arrivalDate.plusDays(1);
+            }
+
+            prevDeptTime = departureTime;
+        }
+
+        return arrivalDate;
+    }
+
+    private LocalTime toLocalTime(String timeAsString){
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH);
+        return LocalTime.parse(timeAsString,formatter);
     }
 
     private Optional<Boolean> isBookingOpen(BookingRequest request){
