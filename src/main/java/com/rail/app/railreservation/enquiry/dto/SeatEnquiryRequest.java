@@ -15,8 +15,8 @@ public class SeatEnquiryRequest {
     private String trainName;
     private String startDt;
     private String endDt;
-    private String startFrom;
-    private String endAt;
+    private String from;
+    private String to;
     private JourneyClass journeyClass;
     private String doj;
 

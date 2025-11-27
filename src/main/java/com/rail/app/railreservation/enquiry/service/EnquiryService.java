@@ -166,8 +166,8 @@ public class EnquiryService {
         logger.info("Searching Available Seats In TrainNo:{}",seatEnquiryRequest.getTrainNo());
 
 
-        String src = seatEnquiryRequest.getStartFrom();
-        String dest = seatEnquiryRequest.getEndAt();
+        String src = seatEnquiryRequest.getFrom();
+        String dest = seatEnquiryRequest.getTo();
 
         List<Integer> parentRouteIds;
         parentRouteIds = new ArrayList<>(getParentRoutes(src, dest));
@@ -189,7 +189,6 @@ public class EnquiryService {
 
         BookingRequest bookingRequest = mapper.map(seatEnquiryRequest,BookingRequest.class);
 
-
         SeatEnquiryResponse seatEnquiryResponse = mapper.map(seatEnquiryRequest,SeatEnquiryResponse.class);
 
         int seatsAvailable;
@@ -207,7 +206,7 @@ public class EnquiryService {
         List<Timing> trainTimings;
         trainTimings = timeTableEnquiryResponse.getTrainTimings();
 
-        long totalHours = 0,totalMinutes = 0,minutes = 0;
+        long minutes = 0;
 
         LocalTime prevDeptTime = toLocalTime(trainTimings.get(0).getDeptTime());
 
