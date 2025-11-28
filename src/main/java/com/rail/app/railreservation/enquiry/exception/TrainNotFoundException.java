@@ -27,4 +27,7 @@ public class TrainNotFoundException extends IOException {
         this.trainNo = trainNo;
     }
 
+    public TrainNotFoundException(String message) {
+        super(message);
+    }
 }

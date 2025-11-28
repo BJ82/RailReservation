@@ -1,13 +1,14 @@
 package com.rail.app.railreservation.trainmanagement.controller;
 
+import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
+import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.trainmanagement.dto.AllTrainResponse;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.service.TrainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -45,14 +46,16 @@ public class TrainsController {
         return ResponseEntity.created(location).body(trainAddResponse);
     }
 
+    @GetMapping("all")
+    public ResponseEntity<AllTrainResponse> getAllTrains() throws TrainNotFoundException, RouteNotFoundException {
 
-    @ExceptionHandler(DuplicateTrainException.class)
-    public ResponseEntity<String> duplicateTrainExceptionHandler(DuplicateTrainException dupltrnex){
+        logger.info(INSIDE_TRAIN_CONTROLLER);
+        logger.info("Processing Request To Return All Trains..");
 
-       logger.error(dupltrnex.getMessage());
-       logger.error("Train With Name: {} and TrainNo: {} Already Present!!",dupltrnex.getTrnName(),dupltrnex.getTrnNo());
-       return  ResponseEntity.status(HttpStatus.FORBIDDEN).header("Cause","Adding Duplicate Train").body("DuplicateTrainException");
+        return ResponseEntity.ok().body(ts.getAllTrains());
 
     }
+
+
 
 }

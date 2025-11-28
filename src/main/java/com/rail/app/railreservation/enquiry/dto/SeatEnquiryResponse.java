@@ -1,6 +1,7 @@
 package com.rail.app.railreservation.enquiry.dto;
 
 
+import com.rail.app.railreservation.common.enums.JourneyClass;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,9 +13,11 @@ public class SeatEnquiryResponse {
 
     private int trainNo;
     private String trainName;
+    private String startDt;
+    private String endDt;
+    private String from;
+    private String to;
+    private JourneyClass journeyClass;
     private String doj;
-    private String sleeper;
-    private String AC1;
-    private String AC2;
-    private String AC3;
+    private int seatsAvailable;
 }

@@ -3,9 +3,14 @@ package com.rail.app.railreservation.trainmanagement.service;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
+import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.trainmanagement.dto.AllTrainResponse;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TrainAddResponse;
+import com.rail.app.railreservation.trainmanagement.dto.TrainInfo;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,6 +41,8 @@ public class TrainService {
     }
 
     private Integer ROUTE_ID = null;
+
+    private ModelMapper mapper = new ModelMapper();
 
     public TrainAddResponse addNewTrain(TrainAddRequest trnReq) throws DuplicateTrainException {
 
@@ -82,6 +89,7 @@ public class TrainService {
 
         } else {
 
+            trainNo = trainRepo.findByTrainName(trnReq.getTrainName()).get().getTrainNo();
             throw new DuplicateTrainException(trnReq.getTrainName(),trainNo);
 
         }
@@ -90,7 +98,7 @@ public class TrainService {
 
     private Train addTrain(TrainAddRequest trnAddReq,Integer routeID){
 
-        Train train = convertToTrain(trnAddReq);
+        Train train = mapper.map(trnAddReq,Train.class);
         train.setRouteId(routeID);
         trainRepo.save(train);
 
@@ -131,17 +139,28 @@ public class TrainService {
                                               }).map(r->r.getRouteID()).findFirst();
     }
 
-    private Train convertToTrain(TrainAddRequest trnReq){
-        ModelMapper modelMapper = new ModelMapper();
-        /*PropertyMap<TrainAddRequest, Train> skipStationsField = new PropertyMap<TrainAddRequest, Train>() {
-            @Override
-            protected void configure() {
+    public AllTrainResponse getAllTrains() throws TrainNotFoundException,RouteNotFoundException {
 
-                skip(trnReq.getStations());
-            }
-        };
-        modelMapper.addMappings(skipStationsField);*/
-        return modelMapper.map(trnReq,Train.class);
+        logger.info(INSIDE_TRAIN_SERVICE);
+        logger.info("Getting All Trains...");
+
+        List<Train> trns = trainRepo.findAll();
+
+        if(trns.isEmpty())
+            throw new TrainNotFoundException("No Train Found.Pls Add New Train");
+
+        Route route;
+        TrainInfo trnInfo;
+        AllTrainResponse allTrainResponse = new AllTrainResponse();
+
+        for(Train trn:trns){
+
+            trnInfo =  mapper.map(trn, TrainInfo.class);
+            route = routeRepo.findByRouteID(trn.getRouteId()).orElseThrow(()->new RouteNotFoundException("Route Not Found For RouteID: "+trn.getRouteId(),trn.getRouteId()));
+            trnInfo.getStns().addAll(route.getStations());
+            allTrainResponse.getAllTrains().add(trnInfo);
+        }
+
+        return allTrainResponse;
     }
-
 }

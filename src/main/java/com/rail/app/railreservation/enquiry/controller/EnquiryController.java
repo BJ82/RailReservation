@@ -1,13 +1,16 @@
 package com.rail.app.railreservation.enquiry.controller;
 
-import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
+import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
+import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
+import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
+import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
-import com.rail.app.railreservation.enquiry.service.Enquiry;
+import com.rail.app.railreservation.enquiry.service.EnquiryService;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
@@ -20,11 +23,11 @@ public class EnquiryController {
 
     private static final Logger logger = LogManager.getLogger(EnquiryController.class);
 
-    private static final String INSIDE_ENQUIRY_CONTROLLER = "Inside Enquiry Controller...";
+    private static final String INSIDE_ENQUIRY_CONTROLLER = "Inside EnquiryService Controller...";
 
-    private Enquiry enquiryService;
+    private EnquiryService enquiryService;
 
-    public EnquiryController(Enquiry enquiryService) {
+    public EnquiryController(EnquiryService enquiryService) {
         this.enquiryService = enquiryService;
     }
 
@@ -47,19 +50,26 @@ public class EnquiryController {
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
     }
 
-    @ExceptionHandler(TrainNotFoundException.class)
-    public ResponseEntity<String> trainNotFoundHandler(TrainNotFoundException tnfex){
+    @PostMapping("seats")
+    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
 
-        logger.error(tnfex.getMessage());
-        logger.error("Exception Raised"+tnfex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",tnfex.getMessage()).body(tnfex.getMessage());
+        logger.info(INSIDE_ENQUIRY_CONTROLLER);
+        logger.info("Processing request to find available seats");
+
+        SeatEnquiryResponse seatEnquiryResponse;
+        seatEnquiryResponse = enquiryService.seatEnquiry(seatEnquiryRequest);
+
+        return ResponseEntity.ok().body(seatEnquiryResponse);
     }
 
-    @ExceptionHandler(RouteNotFoundException.class)
-    public ResponseEntity<String> routeNotFoundHandler(RouteNotFoundException routnf){
+    @GetMapping("pnr/{pnrNo}")
+    public ResponseEntity<PnrEnquiryResponse> pnrEnquiry(@PathVariable("pnrNo") int pnrNo) throws PnrNotFoundException {
 
-        logger.error(routnf.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).header("Cause",routnf.getMessage()).body(routnf.getMessage());
+        PnrEnquiryResponse pnrEnquiryResponse;
+        pnrEnquiryResponse = enquiryService.pnrEnquiry(pnrNo);
+
+       return ResponseEntity.ok().body(pnrEnquiryResponse);
+
     }
 
 }
