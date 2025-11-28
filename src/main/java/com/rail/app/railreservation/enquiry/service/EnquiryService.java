@@ -1,15 +1,19 @@
 package com.rail.app.railreservation.enquiry.service;
 
 import com.rail.app.railreservation.booking.dto.BookingRequest;
+import com.rail.app.railreservation.booking.entity.Booking;
+import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.service.BookingService;
 import com.rail.app.railreservation.common.entity.Train;
 import com.rail.app.railreservation.common.repository.RouteRepository;
 import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
+import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
@@ -35,22 +39,20 @@ import java.util.stream.Collectors;
 public class EnquiryService {
 
     private static final Logger logger = LogManager.getLogger(EnquiryService.class);
-
     private static final String INSIDE_ENQUIRY_SERVICE = "Inside EnquiryService Service...";
-
     private final RouteRepository routeRepo;
     private final TrainRepository trainRepo;
-
+    private final BookingRepository bookingRepo;
     private final BookingService bookingService;
-
     private final TimeTableService timeTableService;
 
     ModelMapper mapper = new ModelMapper();
 
-    public EnquiryService(RouteRepository routeRepo, TrainRepository trainRepo,
+    public EnquiryService(RouteRepository routeRepo, TrainRepository trainRepo, BookingRepository bookingRepo,
                           BookingService bookingService, TimeTableService timeTableService) {
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
+        this.bookingRepo = bookingRepo;
         this.bookingService = bookingService;
         this.timeTableService = timeTableService;
     }
@@ -260,11 +262,22 @@ public class EnquiryService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
         return LocalDate.parse(dateAsString,formatter);
     }
-    /*public TrainEnquiryResponse trainEnquiry(String trainName){
 
+
+    public PnrEnquiryResponse pnrEnquiry(int pnrNo) throws PnrNotFoundException {
+
+        Booking booking;
+        booking = bookingRepo.findById(pnrNo).
+                  orElseThrow(() -> new PnrNotFoundException("Invalid Pnr No.Could not find booking corresponding to pnr no:"+pnrNo));
+
+
+        PnrEnquiryResponse pnrEnquiryResponse;
+        pnrEnquiryResponse = mapper.map(booking,PnrEnquiryResponse.class);
+
+        return pnrEnquiryResponse;
     }
 
-    public PnrEnquiryResponse pnrEnquiry(int pnrNo){
+    /*public TrainEnquiryResponse trainEnquiry(String trainName){
 
     }
 
