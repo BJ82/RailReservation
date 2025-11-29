@@ -17,21 +17,15 @@ import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryExceptio
 import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
-import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
-import com.rail.app.railreservation.trainmanagement.entity.Timing;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
