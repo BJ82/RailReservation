@@ -1,6 +1,6 @@
 package com.rail.app.railreservation.booking.entity;
 
-import com.rail.app.railreservation.common.enums.JourneyClass;
+import com.rail.app.railreservation.commons.enums.JourneyClass;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

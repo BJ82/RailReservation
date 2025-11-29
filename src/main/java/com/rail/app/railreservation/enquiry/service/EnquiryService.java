@@ -4,9 +4,10 @@ import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.service.BookingService;
-import com.rail.app.railreservation.common.entity.Train;
-import com.rail.app.railreservation.common.repository.RouteRepository;
-import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.commons.Utils;
+import com.rail.app.railreservation.commons.entity.Train;
+import com.rail.app.railreservation.commons.repository.RouteRepository;
+import com.rail.app.railreservation.commons.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
@@ -24,7 +25,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -46,15 +46,16 @@ public class EnquiryService {
     private final BookingService bookingService;
     private final TimeTableService timeTableService;
 
-    ModelMapper mapper = new ModelMapper();
+    private final ModelMapper mapper;
 
     public EnquiryService(RouteRepository routeRepo, TrainRepository trainRepo, BookingRepository bookingRepo,
-                          BookingService bookingService, TimeTableService timeTableService) {
+                          BookingService bookingService, TimeTableService timeTableService, ModelMapper mapper) {
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
         this.bookingRepo = bookingRepo;
         this.bookingService = bookingService;
         this.timeTableService = timeTableService;
+        this.mapper = mapper;
     }
 
 
@@ -180,9 +181,9 @@ public class EnquiryService {
             throw new InvalidSeatEnquiryException("Invalid Seat Enquiry Because ",
                                                   new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest));
 
-       LocalDate startDate = toLocalDate(seatEnquiryRequest.getStartDt());
-       LocalDate dateOfArrival =  getArrivalDate(seatEnquiryRequest.getTrainNo(),src,startDate);
-       LocalDate dateOfJourney = toLocalDate(seatEnquiryRequest.getDoj());
+       LocalDate startDate = Utils.toLocalDate(seatEnquiryRequest.getStartDt());
+       LocalDate dateOfArrival =  Utils.getArrivalDate(seatEnquiryRequest.getTrainNo(),src,startDate);
+       LocalDate dateOfJourney = Utils.toLocalDate(seatEnquiryRequest.getDoj());
 
        if(!dateOfArrival.equals(dateOfJourney))
            throw new InvalidSeatEnquiryException("Invalid Seat Enquiry Because ",
@@ -200,70 +201,6 @@ public class EnquiryService {
         return seatEnquiryResponse;
     }
 
-    private LocalDate getArrivalDate(int trainNo, String stn,LocalDate startDate) throws TimeTableNotFoundException {
-
-        TimeTableEnquiryResponse timeTableEnquiryResponse;
-        timeTableEnquiryResponse = timeTableService.getTimeTable(trainNo);
-
-        List<Timing> trainTimings;
-        trainTimings = timeTableEnquiryResponse.getTrainTimings();
-
-        long minutes = 0;
-
-        LocalTime prevDeptTime = toLocalTime(trainTimings.get(0).getDeptTime());
-
-        LocalTime arrivalTime, departureTime;
-
-        Duration between1,between2;
-
-        LocalDate arrivalDate = startDate;
-
-        for(Timing timing:trainTimings){
-
-            arrivalTime = toLocalTime(timing.getArrvTime());
-            between1 = Duration.between(prevDeptTime,arrivalTime);
-
-            minutes = between1.toMinutes();
-
-            if( minutes < 0){
-
-                arrivalDate = arrivalDate.plusDays(1);
-            }
-
-
-            if(timing.getStation().equals(stn))
-                break;
-
-
-            departureTime = toLocalTime(timing.getDeptTime());
-            between2 = Duration.between(arrivalTime,departureTime);
-
-            minutes = between2.toMinutes();
-
-            if( minutes < 0){
-
-                arrivalDate = arrivalDate.plusDays(1);
-            }
-
-            prevDeptTime = departureTime;
-        }
-
-        return arrivalDate;
-    }
-
-    private LocalTime toLocalTime(String timeAsString){
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH);
-        return LocalTime.parse(timeAsString,formatter);
-    }
-
-    private LocalDate toLocalDate(String dateAsString){
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
-        return LocalDate.parse(dateAsString,formatter);
-    }
-
-
     public PnrEnquiryResponse pnrEnquiry(int pnrNo) throws PnrNotFoundException {
 
         Booking booking;
@@ -278,10 +215,6 @@ public class EnquiryService {
     }
 
     /*public TrainEnquiryResponse trainEnquiry(String trainName){
-
-    }
-
-    public SeatEnquiryResponse seatEnquiry(int trainNo, String doj){
 
     }*/
 

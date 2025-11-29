@@ -1,6 +1,5 @@
 package com.rail.app.railreservation.enquiry.entity;
 
-import com.rail.app.railreservation.common.enums.Day;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

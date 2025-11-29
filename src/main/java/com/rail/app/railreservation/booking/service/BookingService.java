@@ -1,24 +1,24 @@
 package com.rail.app.railreservation.booking.service;
 
 import com.rail.app.railreservation.booking.dto.*;
+import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.entity.BookingOpen;
 import com.rail.app.railreservation.booking.entity.SeatCount;
 import com.rail.app.railreservation.booking.entity.SeatNoTracker;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
+import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCountRepository;
 import com.rail.app.railreservation.booking.repository.SeatNoTrackerRepository;
-import com.rail.app.railreservation.common.entity.Train;
-import com.rail.app.railreservation.common.enums.JourneyClass;
-import com.rail.app.railreservation.common.repository.RouteRepository;
-import com.rail.app.railreservation.common.repository.TrainRepository;
-import com.rail.app.railreservation.booking.exception.InvalidBookingException;
+import com.rail.app.railreservation.commons.Utils;
+import com.rail.app.railreservation.commons.entity.Train;
+import com.rail.app.railreservation.commons.enums.JourneyClass;
+import com.rail.app.railreservation.commons.repository.RouteRepository;
+import com.rail.app.railreservation.commons.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.entity.Route;
-import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
 import com.rail.app.railreservation.trainmanagement.entity.Timing;
@@ -66,10 +66,12 @@ public class BookingService {
 
     private final TimeTableService timeTableService;
 
+    private final ModelMapper mapper;
+
     public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
                           SeatCountRepository seatCountRepo, BookingRepository bookingRepo,
                           SeatNoTrackerRepository seatNoTrackerRepo,
-                          BookingOpenRepository bookingOpenRepo, TimeTableService timeTableService) {
+                          BookingOpenRepository bookingOpenRepo, TimeTableService timeTableService, ModelMapper mapper) {
 
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
@@ -78,18 +80,17 @@ public class BookingService {
         this.seatNoTrackerRepo = seatNoTrackerRepo;
         this.bookingOpenRepo = bookingOpenRepo;
         this.timeTableService = timeTableService;
+        this.mapper = mapper;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
-
-    ModelMapper mapper = new ModelMapper();
 
     public BookingOpenResponse openBooking(BookingOpenRequest request)
                                            throws BookingCannotOpenException{
 
         logger.info(INSIDE_BOOKING_SERVICE);
 
-        LocalDate startDt = toLocalDate(request.getStartDt());
+        LocalDate startDt = Utils.toLocalDate(request.getStartDt());
 
         if(startDt.isBefore(LocalDate.now()))
             throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
@@ -100,8 +101,8 @@ public class BookingService {
         logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
                     request.getTrainNo(),request.getStartDt(),request.getEndDt());
 
-        bookingOpenRepo.save(new BookingOpen(request.getTrainNo(),toLocalDate(request.getStartDt()),
-                                             toLocalDate(request.getEndDt()),true,
+        bookingOpenRepo.save(new BookingOpen(request.getTrainNo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
+                                             Utils.toLocalDate(request.getEndDt()),true,
                                              Timestamp.from(Instant.now())
                                             )
                             );
@@ -109,15 +110,15 @@ public class BookingService {
         for(JourneyClass jrnyClass:JourneyClass.values()){
 
             seatNoTrackerRepo.save(new SeatNoTracker(request.getTrainNo(),
-                                                     jrnyClass,toLocalDate(request.getStartDt()),
-                                                     toLocalDate(request.getEndDt()),0
+                                                     jrnyClass,Utils.toLocalDate(request.getStartDt()),
+                                                     Utils.toLocalDate(request.getEndDt()),0
                                                     )
                                   );
 
 
             seatCountRepo.save(new SeatCount(request.getTrainNo(),
-                                             toLocalDate(request.getStartDt()),
-                                             toLocalDate(request.getEndDt()),jrnyClass,0
+                                             Utils.toLocalDate(request.getStartDt()),
+                                             Utils.toLocalDate(request.getEndDt()),jrnyClass,0
                                             )
                               );
         }
@@ -164,9 +165,9 @@ public class BookingService {
         //Check if DOJ is Valid
         String startFrom = request.getFrom();
 
-        LocalDate trainStartDateFrmSource = toLocalDate(request.getStartDt());
-        LocalDate dateOfArrival =  getArrivalDate(request.getTrainNo(),startFrom,trainStartDateFrmSource);
-        LocalDate dateOfJourney = toLocalDate(request.getDoj());
+        LocalDate trainStartDateFrmSource = Utils.toLocalDate(request.getStartDt());
+        LocalDate dateOfArrival =  Utils.getArrivalDate(request.getTrainNo(),startFrom,trainStartDateFrmSource);
+        LocalDate dateOfJourney = Utils.toLocalDate(request.getDoj());
 
         if(!dateOfArrival.equals(dateOfJourney))
             throw new InvalidBookingException("Invalid Booking Because ",
@@ -206,9 +207,9 @@ public class BookingService {
             }
 
             Booking bkng = bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
-                            request.getTrainNo(),toLocalDate(request.getStartDt()),
-                            toLocalDate(request.getEndDt()),
-                            request.getFrom(),request.getTo(),toLocalDate(request.getDoj()),
+                            request.getTrainNo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
+                            Utils.toLocalDate(request.getEndDt()),
+                            request.getFrom(),request.getTo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getDoj()),
                             request.getJourneyClass(), BOOKING_STATUS,Timestamp.from(Instant.now()),
                             seatNumber
                     )
@@ -224,16 +225,16 @@ public class BookingService {
         if(seatNumberToUpdate != 0) {
 
             seatNoTrackerRepo.updateLastSeatNo(request.getTrainNo(),request.getJourneyClass(),
-                    toLocalDate(request.getStartDt()),
-                    toLocalDate(request.getEndDt()),seatNumberToUpdate);
+                    Utils.toLocalDate(request.getStartDt()),
+                    Utils.toLocalDate(request.getEndDt()),seatNumberToUpdate);
 
         }
 
 
 
         seatCountRepo.updateSeatCount(request.getTrainNo(),request.getJourneyClass(),
-                                      toLocalDate(request.getStartDt()),
-                                      toLocalDate(request.getEndDt()),seatCount);
+                                      Utils.toLocalDate(request.getStartDt()),
+                                      Utils.toLocalDate(request.getEndDt()),seatCount);
 
         BookingResponse bookingResponse = mapper.map(request, BookingResponse.class);
         bookingResponse.setBookingDateTime(Timestamp.from(Instant.now()));
@@ -271,83 +272,20 @@ public class BookingService {
 
     }
 
-    private LocalDate getArrivalDate(int trainNo, String stn,LocalDate startDate) throws TimeTableNotFoundException {
-
-        TimeTableEnquiryResponse timeTableEnquiryResponse;
-        timeTableEnquiryResponse = timeTableService.getTimeTable(trainNo);
-
-        List<Timing> trainTimings;
-        trainTimings = timeTableEnquiryResponse.getTrainTimings();
-
-        long minutes = 0;
-
-        LocalTime prevDeptTime = toLocalTime(trainTimings.get(0).getDeptTime());
-
-        LocalTime arrivalTime, departureTime;
-
-        Duration between1,between2;
-
-        LocalDate arrivalDate = startDate;
-
-        for(Timing timing:trainTimings){
-
-            arrivalTime = toLocalTime(timing.getArrvTime());
-            between1 = Duration.between(prevDeptTime,arrivalTime);
-
-            minutes = between1.toMinutes();
-
-            if( minutes < 0){
-
-                arrivalDate = arrivalDate.plusDays(1);
-            }
-
-
-            if(timing.getStation().equals(stn))
-                break;
-
-
-            departureTime = toLocalTime(timing.getDeptTime());
-            between2 = Duration.between(arrivalTime,departureTime);
-
-            minutes = between2.toMinutes();
-
-            if( minutes < 0){
-
-                arrivalDate = arrivalDate.plusDays(1);
-            }
-
-            prevDeptTime = departureTime;
-        }
-
-        return arrivalDate;
-    }
-
-    private LocalTime toLocalTime(String timeAsString){
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm", Locale.ENGLISH);
-        return LocalTime.parse(timeAsString,formatter);
-    }
-
     private Optional<Boolean> isBookingOpen(BookingRequest request){
 
-        return bookingOpenRepo.isBookingOpen(request.getTrainNo(),toLocalDate(request.getStartDt()),
-                toLocalDate(request.getEndDt()));
+        return bookingOpenRepo.isBookingOpen(request.getTrainNo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
+                Utils.toLocalDate(request.getEndDt()));
     }
-
-    private LocalDate toLocalDate(String dateAsString){
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.ENGLISH);
-        return LocalDate.parse(dateAsString,formatter);
-    }
-
+    
     public Set<Integer> getSeatNumbers(BookingRequest request){
 
 
         //Retrieve Last Allotted Seat Number
         SeatNoTracker seatNoTracker = seatNoTrackerRepo.findSeatNoTracker(request.getTrainNo(),
                 request.getJourneyClass(),
-                toLocalDate(request.getStartDt()),
-                toLocalDate(request.getEndDt())
+                Utils.toLocalDate(request.getStartDt()),
+                Utils.toLocalDate(request.getEndDt())
         );
 
         Set<Integer> seatNums;
@@ -383,8 +321,8 @@ public class BookingService {
 
         int seatCount = seatCountRepo.findSeatCount(request.getTrainNo(),
                                                     request.getJourneyClass(),
-                                                    toLocalDate(request.getStartDt()),
-                                                    toLocalDate(request.getEndDt()));
+                                                    Utils.toLocalDate(request.getStartDt()),
+                                                    Utils.toLocalDate(request.getEndDt()));
 
         return seatCount;
     }
@@ -408,8 +346,8 @@ public class BookingService {
                 dest = allStations.get(j);
 
                 seatNums.addAll(bookingRepo.findSeatNumbers( src,dest,request.getTrainNo(),
-                                                             toLocalDate(request.getStartDt()),
-                                                             toLocalDate(request.getEndDt()),
+                                                             Utils.toLocalDate(request.getStartDt()),
+                                                             Utils.toLocalDate(request.getEndDt()),
                                                              request.getJourneyClass()
                                                            )
                                );
@@ -429,8 +367,8 @@ public class BookingService {
 
                 List<Booking> bookings = bookingRepo.findBySeatNo(num,request.getTrainNo(),
                                                                   request.getJourneyClass(),
-                                                                  toLocalDate(request.getStartDt()),
-                                                                  toLocalDate(request.getEndDt()));
+                                                                  Utils.toLocalDate(request.getStartDt()),
+                                                                  Utils.toLocalDate(request.getEndDt()));
 
                 String src,dest;
                 Integer routeID;
@@ -475,8 +413,8 @@ public class BookingService {
                 dest = allStations.get(j);
 
                 seatNums.addAll(bookingRepo.findSeatNumbers(src, dest, request.getTrainNo(),
-                                                            toLocalDate(request.getStartDt()),
-                                                            toLocalDate(request.getEndDt()),
+                                                            Utils.toLocalDate(request.getStartDt()),
+                                                            Utils.toLocalDate(request.getEndDt()),
                                                             request.getJourneyClass()
                                                            )
                                );
@@ -515,19 +453,7 @@ public class BookingService {
                 }
             }
 
-           return toOptional(isRouteValid);
-    }
-
-    private Optional<Boolean> toOptional(boolean b){
-
-        Optional asOptional;
-
-        if(!b)
-            asOptional = Optional.empty();
-
-        asOptional = Optional.of(b);
-
-        return asOptional;
+           return Utils.toOptional(isRouteValid);
     }
 
     private List<Integer> getOverlappingRoutes(String src, String dest){
@@ -544,31 +470,6 @@ public class BookingService {
 
         return routes.stream().map(r->r.getRouteID()).collect(Collectors.toList());
 
-    }
-
-    private List<Integer> getChildRoutes(String src, String dest){
-
-        List<String> stns = new ArrayList<>();
-        int routeID = getRouteId(src,dest).orElse(-1);
-        if(routeID != -1){
-            Route route = routeRepo.findByRouteID(routeID).orElse(null);
-            if(route != null){
-                stns.addAll(route.getStations());
-            }
-        }
-
-        List<Integer> childRoutes = new ArrayList<>();
-        String source;
-        String destn;
-        for(int i=0;i<stns.size();i++){
-            source = stns.get(i);
-            for(int j=i+1;j<stns.size();j++){
-                destn = stns.get(j);
-                childRoutes.add(getRouteId(source,destn).get());
-            }
-        }
-
-        return childRoutes;
     }
 
     private Optional<Integer> getRouteId(String src, String dest){

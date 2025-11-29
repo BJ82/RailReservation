@@ -2,7 +2,7 @@ package com.rail.app.railreservation.booking.repository;
 
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.common.enums.JourneyClass;
+import com.rail.app.railreservation.commons.enums.JourneyClass;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
