@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LoginController {
 
-    private LoginService loginService;
+   private LoginService loginService;
 
     public LoginController(LoginService loginService) {
         this.loginService = loginService;
@@ -22,4 +22,5 @@ public class LoginController {
 
         return ResponseEntity.ok().body(loginService.login(loginRequest));
     }
+
 }
