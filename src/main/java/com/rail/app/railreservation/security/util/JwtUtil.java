@@ -17,6 +17,7 @@ public class JwtUtil {
 
     @Autowired
     private static UserService userService;
+
     public static String generateToken(String username){
 
         return Jwts.builder()
@@ -59,6 +60,18 @@ public class JwtUtil {
             }
         }
         return isJWTValid;
+    }
+
+    public static String getUserName(String token){
+
+        JwtParser jwtParser = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build();
+
+        Jws jwtToken = (Jws) jwtParser.parse(token);
+        Claims bodyJwt = (Claims) jwtToken.getBody();
+
+        return bodyJwt.getSubject();
     }
 
     private static boolean isNonEmpty(String str){
