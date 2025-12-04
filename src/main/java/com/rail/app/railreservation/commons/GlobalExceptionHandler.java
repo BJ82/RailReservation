@@ -10,6 +10,7 @@ import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainExce
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableWithoutTrainException;
+import io.jsonwebtoken.security.SignatureException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -122,5 +123,13 @@ public class GlobalExceptionHandler {
         logger.error(usrnamenotfndEx.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(usrnamenotfndEx.getMessage());
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<String> signatureExceptionHandler(SignatureException signatureEx){
+
+        logger.error(signatureEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(signatureEx.getMessage());
     }
 }
