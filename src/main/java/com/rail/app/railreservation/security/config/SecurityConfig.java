@@ -35,12 +35,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-   /* @Bean
-    public UserService userService(){
-
-        return new UserService();
-    }*/
-
     @Bean
     public PasswordEncoder passwordEncoder(){
 
