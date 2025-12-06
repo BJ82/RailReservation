@@ -31,8 +31,13 @@ public class Booking {
     private String startFrom;
     private String endAt;
     private LocalDate dtOfJourny;
+
+    @Enumerated(EnumType.STRING)
     private JourneyClass journeyClass;
+
+    @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
+
     private Timestamp timestamp;
     private int seatNo;
 

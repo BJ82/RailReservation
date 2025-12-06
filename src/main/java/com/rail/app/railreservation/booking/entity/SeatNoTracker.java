@@ -23,7 +23,10 @@ public class SeatNoTracker {
     private int id;
 
     private int trainNo;
+
+    @Enumerated(EnumType.STRING)
     private JourneyClass journeyClass;
+
     private LocalDate startDt;
     private LocalDate endDt;
     private int lstSeatNum;

@@ -29,6 +29,7 @@ public class TimeTable {
     @ElementCollection
     @CollectionTable(name = "TrainRunDays" , joinColumns = @JoinColumn(name = "TIME_TABLE_ID"))
     @Column(name = "DAY")
+    @Enumerated(EnumType.STRING)
     private List<Day> runOnDays = new ArrayList<>();
 
     @ElementCollection

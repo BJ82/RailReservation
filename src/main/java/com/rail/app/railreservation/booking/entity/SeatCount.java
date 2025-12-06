@@ -24,7 +24,10 @@ public class SeatCount {
     private int trainNo;
     private LocalDate startDate;
     private LocalDate endDate;
+
+    @Enumerated(EnumType.STRING)
     private JourneyClass journeyClass;
+
     private int seatCount;
 
     public SeatCount(int trainNo, LocalDate startDate, LocalDate endDate, JourneyClass journeyClass, int seatCount) {

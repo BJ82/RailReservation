@@ -31,6 +31,7 @@ public class Train {
     @ElementCollection
     @CollectionTable(name = "run_on_days" , joinColumns = @JoinColumn(name = "train_run_day"))
     @Column(name = "day")
+    @Enumerated(EnumType.STRING)
     private List<Day> runOnDays = new ArrayList<>();
 
     private String deptTime;
@@ -40,6 +41,7 @@ public class Train {
     @ElementCollection
     @CollectionTable(name = "journy_class_types" , joinColumns = @JoinColumn(name = "journy_class"))
     @Column(name = "class")
+    @Enumerated(EnumType.STRING)
     private List<JourneyClass> avblJournyClass = new ArrayList<>();
 
 }
