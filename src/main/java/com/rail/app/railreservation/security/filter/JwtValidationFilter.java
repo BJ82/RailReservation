@@ -16,11 +16,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter {
+public class JwtValidationFilter extends OncePerRequestFilter {
 
     private final UserService userService;
 
-    public JwtAuthFilter(UserService userService) {
+    public JwtValidationFilter(UserService userService) {
         this.userService = userService;
     }
 

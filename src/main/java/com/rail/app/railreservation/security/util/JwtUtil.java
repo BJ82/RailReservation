@@ -42,7 +42,7 @@ public class JwtUtil {
             Claims bodyJwt = (Claims) jwtToken.getBody();
 
 
-            //TODO Check username against DB
+            //Check username against DB
             String userNameFrmJwt = bodyJwt.getSubject();
             UserDetails userDetails = userService.loadUserByUsername(userNameFrmJwt);
 
@@ -52,7 +52,7 @@ public class JwtUtil {
             }
 
 
-            //TODO Check expiration
+            //Check expiration
             Date expiryDate = bodyJwt.getExpiration();
             if(expiryDate != null){
                 if (!expiryDate.after(new Date()))
