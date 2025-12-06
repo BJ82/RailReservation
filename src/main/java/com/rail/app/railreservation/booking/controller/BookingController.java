@@ -9,6 +9,7 @@ import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundE
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -44,6 +45,7 @@ public class BookingController {
        return ResponseEntity.created(location).body(bookingResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("open")
     public ResponseEntity<BookingOpenResponse> openBooking(@RequestBody BookingOpenRequest bookingOpenRequest) throws BookingCannotOpenException {
 

@@ -6,6 +6,7 @@ import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryExceptio
 import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.signup.exception.UserPresentException;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
@@ -131,5 +132,13 @@ public class GlobalExceptionHandler {
         logger.error(signatureEx.getMessage());
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(signatureEx.getMessage());
+    }
+
+    @ExceptionHandler(UserPresentException.class)
+    public ResponseEntity<String> userPresentExceptionHandler(UserPresentException userPresentEx){
+
+        logger.error(userPresentEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(userPresentEx.getMessage());
     }
 }
