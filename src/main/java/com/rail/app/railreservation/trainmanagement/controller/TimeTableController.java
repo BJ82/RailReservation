@@ -10,6 +10,7 @@ import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -29,6 +30,7 @@ public class TimeTableController {
         this.timeTableService = timeTableService;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("add")
     public ResponseEntity<TimeTableAddResponse> add(@RequestBody TimeTableAddRequest tmtbladdreq) throws TimeTableWithoutTrainException, TimeTableAddFailException {
 

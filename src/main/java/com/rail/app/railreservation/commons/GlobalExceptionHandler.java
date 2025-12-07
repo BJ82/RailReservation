@@ -1,19 +1,24 @@
-package com.rail.app.railreservation.common;
+package com.rail.app.railreservation.commons;
 
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
 import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
-import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.signup.exception.UserPresentException;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
+import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableWithoutTrainException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -105,5 +110,44 @@ public class GlobalExceptionHandler {
         logger.error(pnrNotFoundEx.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pnrNotFoundEx.getMessage());
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> authenticationExceptionHandler(AuthenticationException authEx){
+
+        logger.error(authEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(authEx.getMessage());
+    }
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<String> userNameNotFoundExceptionHandler(UsernameNotFoundException usrnamenotfndEx){
+
+        logger.error(usrnamenotfndEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(usrnamenotfndEx.getMessage());
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<String> signatureExceptionHandler(SignatureException signatureEx){
+
+        logger.error(signatureEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(signatureEx.getMessage());
+    }
+
+    @ExceptionHandler(UserPresentException.class)
+    public ResponseEntity<String> userPresentExceptionHandler(UserPresentException userPresentEx){
+
+        logger.error(userPresentEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(userPresentEx.getMessage());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<String> userPresentExceptionHandler(ExpiredJwtException expiredJwtEx){
+
+        logger.error(expiredJwtEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(expiredJwtEx.getMessage());
     }
 }

@@ -1,6 +1,6 @@
 package com.rail.app.railreservation.trainmanagement.service;
 
-import com.rail.app.railreservation.common.repository.TrainRepository;
+import com.rail.app.railreservation.commons.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableAddResponse;
@@ -22,16 +22,17 @@ public class TimeTableService {
 
     private static final String INSIDE_TIME_TABLE_SERVICE = "Inside Time Table Service...";
 
-    private TimeTableRepository timeTableRepo;
+    private final TimeTableRepository timeTableRepo;
 
-    private TrainRepository trainRepo;
+    private final TrainRepository trainRepo;
 
-    public TimeTableService(TimeTableRepository timeTableRepo,TrainRepository trainRepo) {
+    private final ModelMapper mapper;
+
+    public TimeTableService(TimeTableRepository timeTableRepo, TrainRepository trainRepo, ModelMapper mapper) {
         this.timeTableRepo = timeTableRepo;
         this.trainRepo = trainRepo;
+        this.mapper = mapper;
     }
-
-    ModelMapper mapper = new ModelMapper();
 
     public TimeTableAddResponse addTimeTable(TimeTableAddRequest tmtbladdreq) throws TimeTableWithoutTrainException,TimeTableAddFailException{
 

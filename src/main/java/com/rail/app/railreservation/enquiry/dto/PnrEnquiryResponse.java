@@ -2,7 +2,7 @@ package com.rail.app.railreservation.enquiry.dto;
 
 
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.common.enums.JourneyClass;
+import com.rail.app.railreservation.commons.enums.JourneyClass;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

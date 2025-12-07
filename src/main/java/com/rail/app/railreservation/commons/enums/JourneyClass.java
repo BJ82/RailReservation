@@ -1,4 +1,4 @@
-package com.rail.app.railreservation.common.enums;
+package com.rail.app.railreservation.commons.enums;
 
 public enum JourneyClass {
 

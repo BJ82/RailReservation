@@ -1,7 +1,7 @@
 package com.rail.app.railreservation.booking.entity;
 
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.common.enums.JourneyClass;
+import com.rail.app.railreservation.commons.enums.JourneyClass;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,8 +31,13 @@ public class Booking {
     private String startFrom;
     private String endAt;
     private LocalDate dtOfJourny;
+
+    @Enumerated(EnumType.STRING)
     private JourneyClass journeyClass;
+
+    @Enumerated(EnumType.STRING)
     private BookingStatus bookingStatus;
+
     private Timestamp timestamp;
     private int seatNo;
 

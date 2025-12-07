@@ -1,9 +1,8 @@
 package com.rail.app.railreservation.trainmanagement.service;
 
-import com.rail.app.railreservation.common.entity.Train;
-import com.rail.app.railreservation.common.repository.RouteRepository;
-import com.rail.app.railreservation.common.repository.TrainRepository;
-import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
+import com.rail.app.railreservation.commons.entity.Train;
+import com.rail.app.railreservation.commons.repository.RouteRepository;
+import com.rail.app.railreservation.commons.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
@@ -15,14 +14,11 @@ import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainExce
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class TrainService {
@@ -31,18 +27,20 @@ public class TrainService {
 
     private static final String INSIDE_TRAIN_SERVICE = "Inside Train Service...";
 
-    private TrainRepository trainRepo;
+    private final TrainRepository trainRepo;
 
-    private RouteRepository routeRepo;
+    private final RouteRepository routeRepo;
 
-    public TrainService(TrainRepository trainRepo, RouteRepository routeRepo) {
-        this.trainRepo = trainRepo;
-        this.routeRepo = routeRepo;
-    }
+    private final ModelMapper mapper;
 
     private Integer ROUTE_ID = null;
 
-    private ModelMapper mapper = new ModelMapper();
+    public TrainService(TrainRepository trainRepo, RouteRepository routeRepo, ModelMapper mapper) {
+        this.trainRepo = trainRepo;
+        this.routeRepo = routeRepo;
+        this.mapper = mapper;
+    }
+
 
     public TrainAddResponse addNewTrain(TrainAddRequest trnReq) throws DuplicateTrainException {
 

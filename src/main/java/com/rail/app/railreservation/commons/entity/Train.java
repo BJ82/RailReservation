@@ -1,8 +1,8 @@
-package com.rail.app.railreservation.common.entity;
+package com.rail.app.railreservation.commons.entity;
 
 
-import com.rail.app.railreservation.common.enums.Day;
-import com.rail.app.railreservation.common.enums.JourneyClass;
+import com.rail.app.railreservation.commons.enums.Day;
+import com.rail.app.railreservation.commons.enums.JourneyClass;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,6 +31,7 @@ public class Train {
     @ElementCollection
     @CollectionTable(name = "run_on_days" , joinColumns = @JoinColumn(name = "train_run_day"))
     @Column(name = "day")
+    @Enumerated(EnumType.STRING)
     private List<Day> runOnDays = new ArrayList<>();
 
     private String deptTime;
@@ -40,6 +41,7 @@ public class Train {
     @ElementCollection
     @CollectionTable(name = "journy_class_types" , joinColumns = @JoinColumn(name = "journy_class"))
     @Column(name = "class")
+    @Enumerated(EnumType.STRING)
     private List<JourneyClass> avblJournyClass = new ArrayList<>();
 
 }

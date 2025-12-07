@@ -1,7 +1,7 @@
 package com.rail.app.railreservation.trainmanagement.dto;
 
 
-import com.rail.app.railreservation.common.enums.Day;
+import com.rail.app.railreservation.commons.enums.Day;
 import com.rail.app.railreservation.trainmanagement.entity.Timing;
 import lombok.AllArgsConstructor;
 import lombok.Data;
