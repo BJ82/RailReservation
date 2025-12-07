@@ -11,6 +11,7 @@ import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainExce
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableWithoutTrainException;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -140,5 +141,13 @@ public class GlobalExceptionHandler {
         logger.error(userPresentEx.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(userPresentEx.getMessage());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<String> userPresentExceptionHandler(ExpiredJwtException expiredJwtEx){
+
+        logger.error(expiredJwtEx.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(expiredJwtEx.getMessage());
     }
 }

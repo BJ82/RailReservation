@@ -14,22 +14,30 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret.key}")
-    private String SECRET;
-    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    @Value("${jwt.expiry.time}")
-    private long EXPIRATION_TIME;
+    private final String SECRET;
+    private final SecretKey key;
 
-    @Autowired
-    private static UserService userService;
+    private final long EXPIRATION_TIME;
+
+    private final UserService userService;
+
+    public JwtUtil(@Value("${jwt.secret.key}") String SECRET,
+                   @Value("${jwt.expiry.time}") String EXPIRATION_TIME,
+                   UserService userService) {
+
+        this.userService = userService;
+        this.SECRET = SECRET;
+        this.key = Keys.hmacShaKeyFor(this.SECRET.getBytes());
+        this.EXPIRATION_TIME = Long.parseLong(EXPIRATION_TIME);
+    }
 
     public String generateToken(String username){
 
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME * 60 * 1000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
