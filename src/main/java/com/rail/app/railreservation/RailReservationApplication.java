@@ -11,12 +11,6 @@ public class RailReservationApplication {
 
 	private static final Logger logger = LogManager.getLogger(RailReservationApplication.class);
 
-	private static SecurityFilterChain filterChain;
-
-	public RailReservationApplication(SecurityFilterChain filterChain) {
-		this.filterChain = filterChain;
-	}
-
 	public static void main(String[] args) {
 
 		logger.info("Starting Rail Reservation System....");
