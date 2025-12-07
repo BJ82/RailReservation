@@ -4,21 +4,27 @@ import com.rail.app.railreservation.security.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 
+@Component
 public class JwtUtil {
 
-    private static final String SECRET = "lkjasd-oiuqwewqe-12414-987897-wioruweitu";
-    private static final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    @Value("${jwt.secret.key}")
+    private String SECRET;
+    private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
+
+    @Value("${jwt.expiry.time}")
+    private long EXPIRATION_TIME;
 
     @Autowired
     private static UserService userService;
 
-    public static String generateToken(String username){
+    public String generateToken(String username){
 
         return Jwts.builder()
                 .setSubject(username)
@@ -28,7 +34,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    public static boolean isJWTValid(String jwt){
+    public boolean isJWTValid(String jwt){
 
         boolean isJWTValid = true;
 
@@ -62,7 +68,7 @@ public class JwtUtil {
         return isJWTValid;
     }
 
-    public static String getUserName(String token){
+    public String getUserName(String token){
 
         JwtParser jwtParser = Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -74,14 +80,14 @@ public class JwtUtil {
         return bodyJwt.getSubject();
     }
 
-    private static boolean isNonEmpty(String str){
+    private boolean isNonEmpty(String str){
 
         boolean isNonEmpty = true;
         isNonEmpty = !("".equals(str));
         return isNonEmpty;
     }
 
-    private static boolean isNotNull(String str){
+    private boolean isNotNull(String str){
 
         return (str == null)?true:false;
 

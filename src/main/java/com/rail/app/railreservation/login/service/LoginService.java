@@ -13,9 +13,11 @@ public class LoginService {
 
     private AuthenticationManager authenticationManager;
 
+    private JwtUtil jwtUtil;
 
-    public LoginService(AuthenticationManager authenticationManager) {
+    public LoginService(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
         this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
     }
 
     public LoginResponse login(LoginRequest loginRequest) throws AuthenticationException {
@@ -25,6 +27,6 @@ public class LoginService {
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,password));
 
-        return new LoginResponse(JwtUtil.generateToken(username),"Login Success");
+        return new LoginResponse(jwtUtil.generateToken(username),"Login Success");
     }
 }
