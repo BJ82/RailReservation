@@ -31,7 +31,7 @@ public class TimeTableController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("add")
+    @PostMapping
     public ResponseEntity<TimeTableAddResponse> add(@RequestBody TimeTableAddRequest tmtbladdreq) throws TimeTableWithoutTrainException, TimeTableAddFailException {
 
         logger.info(INSIDE_TIME_TABLE_CONTROLLER);
@@ -48,7 +48,7 @@ public class TimeTableController {
 
     }
 
-    @GetMapping("train/{trainNo}")
+    @GetMapping("trains/{trainNo}")
     public ResponseEntity<TimeTableEnquiryResponse> getTimeTable(@PathVariable("trainNo") int trainNo) throws TimeTableNotFoundException {
 
         logger.info(INSIDE_TIME_TABLE_CONTROLLER);

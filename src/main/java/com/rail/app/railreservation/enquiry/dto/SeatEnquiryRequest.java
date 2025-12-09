@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SeatEnquiryRequest {
 
-    private int trainNo;
     private String trainName;
     private String startDt;
     private String endDt;

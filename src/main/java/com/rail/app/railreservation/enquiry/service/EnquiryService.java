@@ -157,11 +157,10 @@ public class EnquiryService {
 
     }
 
-    public SeatEnquiryResponse seatEnquiry(SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
+    public SeatEnquiryResponse seatEnquiry(int trainNo,SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
 
         logger.info(INSIDE_ENQUIRY_SERVICE);
-        logger.info("Searching Available Seats In TrainNo:{}",seatEnquiryRequest.getTrainNo());
-
+        logger.info("Searching Available Seats In TrainNo:{}",trainNo);
 
         String src = seatEnquiryRequest.getFrom();
         String dest = seatEnquiryRequest.getTo();
@@ -176,7 +175,7 @@ public class EnquiryService {
                                                   new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest));
 
        LocalDate startDate = Utils.toLocalDate(seatEnquiryRequest.getStartDt());
-       LocalDate dateOfArrival =  Utils.getArrivalDate(seatEnquiryRequest.getTrainNo(),src,startDate);
+       LocalDate dateOfArrival =  Utils.getArrivalDate(trainNo,src,startDate);
        LocalDate dateOfJourney = Utils.toLocalDate(seatEnquiryRequest.getDoj());
 
        if(!dateOfArrival.equals(dateOfJourney))
@@ -185,8 +184,10 @@ public class EnquiryService {
 
 
         BookingRequest bookingRequest = mapper.map(seatEnquiryRequest,BookingRequest.class);
+        bookingRequest.setTrainNo(trainNo);
 
         SeatEnquiryResponse seatEnquiryResponse = mapper.map(seatEnquiryRequest,SeatEnquiryResponse.class);
+        seatEnquiryResponse.setTrainNo(trainNo);
 
         int seatsAvailable;
         seatsAvailable = bookingService.getSeatNumbers(bookingRequest).size();

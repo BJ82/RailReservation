@@ -80,7 +80,7 @@ public class BookingService {
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public BookingOpenResponse openBooking(BookingOpenRequest request)
+    public BookingOpenResponse openBooking(int trainNo,BookingOpenRequest request)
                                            throws BookingCannotOpenException{
 
         logger.info(INSIDE_BOOKING_SERVICE);
@@ -90,13 +90,13 @@ public class BookingService {
         if(startDt.isBefore(LocalDate.now()))
             throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
 
-        trainRepo.findByTrainNo(request.getTrainNo())
+        trainRepo.findByTrainNo(trainNo)
                 .orElseThrow(() -> new BookingCannotOpenException("Not Allowed To Open Booking On Non Existent Train"));
 
         logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
-                    request.getTrainNo(),request.getStartDt(),request.getEndDt());
+                trainNo,request.getStartDt(),request.getEndDt());
 
-        bookingOpenRepo.save(new BookingOpen(request.getTrainNo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
+        bookingOpenRepo.save(new BookingOpen(trainNo, com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
                                              Utils.toLocalDate(request.getEndDt()),true,
                                              Timestamp.from(Instant.now())
                                             )
@@ -104,14 +104,14 @@ public class BookingService {
 
         for(JourneyClass jrnyClass:JourneyClass.values()){
 
-            seatNoTrackerRepo.save(new SeatNoTracker(request.getTrainNo(),
+            seatNoTrackerRepo.save(new SeatNoTracker(trainNo,
                                                      jrnyClass,Utils.toLocalDate(request.getStartDt()),
                                                      Utils.toLocalDate(request.getEndDt()),0
                                                     )
                                   );
 
 
-            seatCountRepo.save(new SeatCount(request.getTrainNo(),
+            seatCountRepo.save(new SeatCount(trainNo,
                                              Utils.toLocalDate(request.getStartDt()),
                                              Utils.toLocalDate(request.getEndDt()),jrnyClass,0
                                             )
@@ -119,9 +119,9 @@ public class BookingService {
         }
 
         logger.info("Booking Opened For TrainNo:{}, StartDate:{}, EndDate:{}",
-                    request.getTrainNo(),request.getStartDt(),request.getEndDt());
+                trainNo,request.getStartDt(),request.getEndDt());
 
-        return new BookingOpenResponse(request.getTrainNo(),request.getStartDt(),
+        return new BookingOpenResponse(trainNo,request.getStartDt(),
                                        request.getEndDt(),true);
     }
 

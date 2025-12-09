@@ -16,7 +16,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("booking/")
+@RequestMapping("bookings/")
 public class BookingController {
 
     private static final Logger logger = LogManager.getLogger(BookingController.class);
@@ -29,7 +29,7 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
-    @PostMapping("book")
+    @PostMapping
     public ResponseEntity<BookingResponse> bookTicket(@RequestBody BookingRequest bookingRequest) throws InvalidBookingException, BookingNotOpenException, TimeTableNotFoundException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);
@@ -46,22 +46,22 @@ public class BookingController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("open")
-    public ResponseEntity<BookingOpenResponse> openBooking(@RequestBody BookingOpenRequest bookingOpenRequest) throws BookingCannotOpenException {
+    @PostMapping("trains/{trainNo}/status")
+    public ResponseEntity<BookingOpenResponse> openBooking(@PathVariable("trainNo") int trainNo,@RequestBody BookingOpenRequest bookingOpenRequest) throws BookingCannotOpenException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);
         logger.info("Processing Request To Open Booking");
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
                 .path("/{id}")
-                .buildAndExpand(bookingOpenRequest.getTrainNo())
+                .buildAndExpand(trainNo)
                 .toUri();
 
-        return ResponseEntity.created(location).body(bookingService.openBooking(bookingOpenRequest));
+        return ResponseEntity.created(location).body(bookingService.openBooking(trainNo,bookingOpenRequest));
     }
 
-    @GetMapping("open/status")
-    public ResponseEntity<BookingOpenInfo> isBookingOpen(@RequestParam("trainNo") int trainNo){
+    @GetMapping("trains/{trainNo}/status")
+    public ResponseEntity<BookingOpenInfo> isBookingOpen(@PathVariable("trainNo") int trainNo){
 
         return ResponseEntity.ok(bookingService.getBookingOpenInfo(trainNo));
     }
