@@ -4,12 +4,14 @@ import com.rail.app.railreservation.booking.dto.BookingOpenRequest;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.SeatCount;
 import com.rail.app.railreservation.booking.entity.SeatNoTracker;
+import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCountRepository;
 import com.rail.app.railreservation.booking.repository.SeatNoTrackerRepository;
 import com.rail.app.railreservation.commons.Utils;
 import com.rail.app.railreservation.commons.enums.JourneyClass;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class SeatInfoTrackerService {
@@ -18,9 +20,12 @@ public class SeatInfoTrackerService {
 
     private final SeatCountRepository seatCountRepo;
 
-    public SeatInfoTrackerService(SeatNoTrackerRepository seatNoTrackerRepo, SeatCountRepository seatCountRepo) {
+    private final BookingRepository bookingRepo;
+
+    public SeatInfoTrackerService(SeatNoTrackerRepository seatNoTrackerRepo, SeatCountRepository seatCountRepo, BookingRepository bookingRepo) {
         this.seatNoTrackerRepo = seatNoTrackerRepo;
         this.seatCountRepo = seatCountRepo;
+        this.bookingRepo = bookingRepo;
     }
 
     public void initSeatInfoTracker(int trainNo, BookingOpenRequest request){
@@ -81,4 +86,13 @@ public class SeatInfoTrackerService {
         return seatCount;
 
     }
+
+    public List<Integer> getSeatNumbers(String startFrom, String endAt, BookingRequest request){
+
+        return bookingRepo.findSeatNumbers(startFrom,endAt,request.getTrainNo(),
+                                           Utils.toLocalDate(request.getStartDt()),
+                                           Utils.toLocalDate(request.getEndDt()),
+                                           request.getJourneyClass());
+    }
+
 }

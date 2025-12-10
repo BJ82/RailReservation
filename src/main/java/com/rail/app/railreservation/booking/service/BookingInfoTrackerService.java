@@ -1,0 +1,63 @@
+package com.rail.app.railreservation.booking.service;
+
+import com.rail.app.railreservation.booking.dto.BookingOpenRequest;
+import com.rail.app.railreservation.booking.dto.BookingRequest;
+import com.rail.app.railreservation.booking.dto.Passenger;
+import com.rail.app.railreservation.booking.entity.Booking;
+import com.rail.app.railreservation.booking.entity.BookingOpen;
+import com.rail.app.railreservation.booking.enums.BookingStatus;
+import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
+import com.rail.app.railreservation.booking.repository.BookingRepository;
+import com.rail.app.railreservation.commons.Utils;
+import org.springframework.stereotype.Service;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.List;
+
+@Service
+public class BookingInfoTrackerService {
+
+    private final BookingRepository bookingRepo;
+
+    private final BookingOpenRepository bookingOpenRepo;
+
+    public BookingInfoTrackerService(BookingRepository bookingRepo, BookingOpenRepository bookingOpenRepo) {
+        this.bookingRepo = bookingRepo;
+        this.bookingOpenRepo = bookingOpenRepo;
+    }
+
+    public int trackBooking(Passenger psngr, BookingRequest request,
+                             BookingStatus BOOKING_STATUS,int seatNumber){
+
+        Booking bkng =  bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
+                                                    request.getTrainNo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
+                                                    Utils.toLocalDate(request.getEndDt()),
+                                                    request.getFrom(),request.getTo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getDoj()),
+                                                    request.getJourneyClass(), BOOKING_STATUS, Timestamp.from(Instant.now()),
+                                                    seatNumber));
+
+        return bkng.getPnr();
+    }
+
+    public List<Booking> getBookingBySeatNumber(int seatNumber,BookingRequest request){
+
+        return bookingRepo.findBySeatNo(seatNumber,request.getTrainNo(),
+                                        request.getJourneyClass(),
+                                        Utils.toLocalDate(request.getStartDt()),
+                                        Utils.toLocalDate(request.getEndDt()));
+
+    }
+
+
+    public void trackBookingOpen(int trainNo, BookingOpenRequest request){
+
+        bookingOpenRepo.save(new BookingOpen(trainNo,Utils.toLocalDate(request.getStartDt()),
+                                            Utils.toLocalDate(request.getEndDt()),true,
+                                            Timestamp.from(Instant.now())
+                )
+        );
+
+    }
+
+}
