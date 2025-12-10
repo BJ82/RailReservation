@@ -16,20 +16,20 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("api/v1/bookings/")
+@RequestMapping("api/v1")
 public class BookingController {
 
     private static final Logger logger = LogManager.getLogger(BookingController.class);
 
     private static final String INSIDE_BOOKING_CONTROLLER = "Inside Booking Controller...";
 
-    private BookingService bookingService;
+    private final BookingService bookingService;
 
     public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
     }
 
-    @PostMapping
+    @PostMapping("/bookings")
     public ResponseEntity<BookingResponse> bookTicket(@RequestBody BookingRequest bookingRequest) throws InvalidBookingException, BookingNotOpenException, TimeTableNotFoundException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);
@@ -46,7 +46,7 @@ public class BookingController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("trains/{trainNo}/open")
+    @PostMapping("trains/{trainNo}/bookings/open")
     public ResponseEntity<BookingOpenResponse> openBooking(@PathVariable("trainNo") int trainNo,@RequestBody BookingOpenRequest bookingOpenRequest) throws BookingCannotOpenException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);
@@ -60,7 +60,7 @@ public class BookingController {
         return ResponseEntity.created(location).body(bookingService.openBooking(trainNo,bookingOpenRequest));
     }
 
-    @GetMapping("trains/{trainNo}/status")
+    @GetMapping("trains/{trainNo}/bookings/status")
     public ResponseEntity<BookingOpenInfo> isBookingOpen(@PathVariable("trainNo") int trainNo){
 
         return ResponseEntity.ok(bookingService.getBookingOpenInfo(trainNo));
