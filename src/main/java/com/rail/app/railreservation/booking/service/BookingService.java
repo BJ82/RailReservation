@@ -157,7 +157,7 @@ public class BookingService {
         int seatCount = seatInfoTrackerService.getCountOfConfirmedSeats(request);
         int seatNumber = 0;
 
-        int seatNumberToUpdate = 0;
+        int lastSeatNumber = 0;
         int i = 0;
         for (Passenger psngr : request.getPassengers()) {
 
@@ -165,7 +165,7 @@ public class BookingService {
             if(i < seatNumbers.size()){
 
                 seatNumber = new ArrayList<>(seatNumbers).get(i);
-                seatNumberToUpdate = seatNumber;
+                lastSeatNumber = seatNumber;
                 BOOKING_STATUS = BookingStatus.CONFIRMED;
                 seatCount++;
             }
@@ -191,9 +191,9 @@ public class BookingService {
 
         }
 
-        if(seatNumberToUpdate != 0) {
+        if(lastSeatNumber != 0) {
 
-            seatInfoTrackerService.trackLastSeatNo(request,seatNumberToUpdate);
+            seatInfoTrackerService.trackLastSeatNo(request,lastSeatNumber);
 
         }
 
