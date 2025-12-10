@@ -11,6 +11,7 @@ import com.rail.app.railreservation.commons.Utils;
 import com.rail.app.railreservation.commons.entity.Train;
 import com.rail.app.railreservation.commons.repository.RouteRepository;
 import com.rail.app.railreservation.commons.repository.TrainRepository;
+import com.rail.app.railreservation.commons.service.StationInfoService;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
@@ -43,6 +44,8 @@ public class BookingService {
 
     private final RouteRepository routeRepo;
 
+    private final StationInfoService stationInfoService;
+
     private final SeatInfoTrackerService seatInfoTrackerService;
 
     private final BookingInfoTrackerService bookingInfoTrackerService;
@@ -51,13 +54,14 @@ public class BookingService {
 
     private final ModelMapper mapper;
 
-    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo,
+    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo, StationInfoService stationInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
                           BookingInfoTrackerService bookingInfoTrackerService, BookingOpenInfoTrackerService bookingOpenInfoTrackerService,
                           ModelMapper mapper) {
 
         this.routeRepo = routeRepo;
         this.trainRepo = trainRepo;
+        this.stationInfoService = stationInfoService;
         this.seatInfoTrackerService = seatInfoTrackerService;
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingOpenInfoTrackerService = bookingOpenInfoTrackerService;
@@ -263,7 +267,7 @@ public class BookingService {
 
         Set<Integer> seatNums = new LinkedHashSet<>();
 
-        List<String> allStations = getAllStations(request.getTrainNo());
+        List<String> allStations = stationInfoService.getAllStations(request.getTrainNo());
 
         int before = allStations.indexOf(request.getFrom());
 
@@ -322,7 +326,7 @@ public class BookingService {
 
         Set<Integer> seatNums = new LinkedHashSet<>();
 
-        List<String> allStations = getAllStations(request.getTrainNo());
+        List<String> allStations = stationInfoService.getAllStations(request.getTrainNo());
 
         int after = allStations.indexOf(request.getTo());
 
@@ -340,20 +344,6 @@ public class BookingService {
 
         filterSeatNos(seatNums,request);
         return seatNums;
-    }
-
-    private List<String> getAllStations(int trainNo){
-
-        Train train;
-        train = trainRepo.findByTrainNo(trainNo).get();
-
-        int routeID;
-        routeID = train.getRouteId();
-
-        Route r;
-        r = routeRepo.findByRouteID(routeID).get();
-
-        return new ArrayList<>(r.getStations());
     }
 
     private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
