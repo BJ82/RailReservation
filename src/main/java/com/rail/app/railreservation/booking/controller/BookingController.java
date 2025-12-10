@@ -16,7 +16,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("bookings/")
+@RequestMapping("api/v1/bookings/")
 public class BookingController {
 
     private static final Logger logger = LogManager.getLogger(BookingController.class);
@@ -46,7 +46,7 @@ public class BookingController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("trains/{trainNo}/status")
+    @PostMapping("trains/{trainNo}/open")
     public ResponseEntity<BookingOpenResponse> openBooking(@PathVariable("trainNo") int trainNo,@RequestBody BookingOpenRequest bookingOpenRequest) throws BookingCannotOpenException {
 
         logger.info(INSIDE_BOOKING_CONTROLLER);

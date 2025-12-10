@@ -17,7 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("timetable/")
+@RequestMapping("api/v1/timetable/")
 public class TimeTableController {
 
     private static final Logger logger = LogManager.getLogger(TimeTableController.class);

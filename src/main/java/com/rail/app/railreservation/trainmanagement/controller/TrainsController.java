@@ -17,7 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/trains")
+@RequestMapping("api/v1/trains")
 public class TrainsController {
 
     private static final Logger logger = LogManager.getLogger(TrainsController.class);

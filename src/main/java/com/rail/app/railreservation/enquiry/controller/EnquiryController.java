@@ -18,7 +18,7 @@ import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import java.util.List;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("api/v1/")
 public class EnquiryController {
 
     private static final Logger logger = LogManager.getLogger(EnquiryController.class);
