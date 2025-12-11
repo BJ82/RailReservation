@@ -10,8 +10,7 @@ import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.commons.Utils;
 import com.rail.app.railreservation.commons.entity.Train;
 import com.rail.app.railreservation.commons.repository.RouteRepository;
-import com.rail.app.railreservation.commons.repository.TrainRepository;
-import com.rail.app.railreservation.commons.service.StationInfoService;
+import com.rail.app.railreservation.commons.service.TrainInfoService;
 import com.rail.app.railreservation.enquiry.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
@@ -40,11 +39,9 @@ public class BookingService {
 
     private final List<Integer> pnrs;
 
-    private final TrainRepository trainRepo;
+    private final TrainInfoService trainInfoService;
 
     private final RouteRepository routeRepo;
-
-    private final StationInfoService stationInfoService;
 
     private final SeatInfoTrackerService seatInfoTrackerService;
 
@@ -54,14 +51,14 @@ public class BookingService {
 
     private final ModelMapper mapper;
 
-    public BookingService(RouteRepository routeRepo, TrainRepository trainRepo, StationInfoService stationInfoService,
+    public BookingService(RouteRepository routeRepo, TrainInfoService trainInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
-                          BookingInfoTrackerService bookingInfoTrackerService, BookingOpenInfoTrackerService bookingOpenInfoTrackerService,
+                          BookingInfoTrackerService bookingInfoTrackerService,
+                          BookingOpenInfoTrackerService bookingOpenInfoTrackerService,
                           ModelMapper mapper) {
 
         this.routeRepo = routeRepo;
-        this.trainRepo = trainRepo;
-        this.stationInfoService = stationInfoService;
+        this.trainInfoService = trainInfoService;
         this.seatInfoTrackerService = seatInfoTrackerService;
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingOpenInfoTrackerService = bookingOpenInfoTrackerService;
@@ -80,7 +77,7 @@ public class BookingService {
         if(startDt.isBefore(LocalDate.now()))
             throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
 
-        trainRepo.findByTrainNo(trainNo)
+        trainInfoService.getByTrainNo(trainNo)
                 .orElseThrow(() -> new BookingCannotOpenException("Not Allowed To Open Booking On Non Existent Train"));
 
         logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
@@ -118,7 +115,7 @@ public class BookingService {
         logger.info(INSIDE_BOOKING_SERVICE);
 
         //Check if Train No is Valid
-        Train trn = trainRepo.findByTrainNo(request.getTrainNo())
+        Train trn = trainInfoService.getByTrainNo(request.getTrainNo())
                 .orElseThrow(() -> new InvalidBookingException("Booking Not Allowed On Non Existent Train"));
 
         //Check if Route is valid
@@ -149,7 +146,7 @@ public class BookingService {
 
 
         seatNumbers.clear();
-        seatNumbers.addAll(getSeatNumbers(request));
+        seatNumbers.addAll(getAvailableSeatNumbers(request));
 
         pnrs.clear();
 
@@ -228,7 +225,7 @@ public class BookingService {
 
     }
 
-    public Set<Integer> getSeatNumbers(BookingRequest request){
+    public Set<Integer> getAvailableSeatNumbers(BookingRequest request){
 
 
         Set<Integer> seatNums;
@@ -267,7 +264,7 @@ public class BookingService {
 
         Set<Integer> seatNums = new LinkedHashSet<>();
 
-        List<String> allStations = stationInfoService.getAllStations(request.getTrainNo());
+        List<String> allStations = getAllStations(request.getTrainNo());
 
         int before = allStations.indexOf(request.getFrom());
 
@@ -326,7 +323,7 @@ public class BookingService {
 
         Set<Integer> seatNums = new LinkedHashSet<>();
 
-        List<String> allStations = stationInfoService.getAllStations(request.getTrainNo());
+        List<String> allStations = getAllStations(request.getTrainNo());
 
         int after = allStations.indexOf(request.getTo());
 
@@ -344,6 +341,20 @@ public class BookingService {
 
         filterSeatNos(seatNums,request);
         return seatNums;
+    }
+
+    private List<String> getAllStations(int trainNo){
+
+        Train train;
+        train = trainInfoService.getByTrainNo(trainNo).get();
+
+        int routeID;
+        routeID = train.getRouteId();
+
+        Route r;
+        r = routeRepo.findByRouteID(routeID).get();
+
+        return new ArrayList<>(r.getStations());
     }
 
     private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
