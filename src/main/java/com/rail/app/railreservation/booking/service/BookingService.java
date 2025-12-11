@@ -7,13 +7,14 @@ import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
-import com.rail.app.railreservation.util.Utils;
-import com.rail.app.railreservation.trainmanagement.entity.Train;
-import com.rail.app.railreservation.route.service.RouteInfoService;
-import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
-import com.rail.app.railreservation.route.entity.Route;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.route.entity.Route;
+import com.rail.app.railreservation.route.service.RouteInfoService;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
+import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
+import com.rail.app.railreservation.util.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -408,13 +409,20 @@ public class BookingService {
         }).map(r->r.getRouteID()).findFirst();
     }
 
+    public String cancelBooking(int pnrNo) throws PnrNoIncorrectException{
 
-    /*public BookedResponse; bookTatkal(BookingRequest request){
+        Booking booking = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
+                                    .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
 
+        if(booking.getBookingStatus().equals(BookingStatus.CONFIRMED)){
+            //TODO UPDATE WAITING TICKETS
+
+            int seatNo = booking.getSeatNo();
+        }else{
+            bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
+        }
+
+        return "Deleted Booking For PnrNo:"+pnrNo;
     }
-
-    public boolean cancelBooking(int bookingID){
-
-    }*/
 
 }

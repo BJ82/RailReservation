@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
@@ -80,4 +81,9 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                                @Param("strtDt") LocalDate strtDt,
                                @Param("endDt") LocalDate endDt);
 
+
+    @Query("SELECT b FROM Booking b " +
+           "FROM Booking b " +
+           "WHERE b.pnr = :pnrNo")
+    Optional<Booking> findBookingstatus(@Param("pnrNo") int pnrNo);
 }

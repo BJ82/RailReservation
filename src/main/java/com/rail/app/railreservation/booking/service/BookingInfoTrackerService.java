@@ -65,4 +65,9 @@ public class BookingInfoTrackerService {
 
         return bookingRepo.findById(pnrNo);
     }
+
+    public void deleteBookingByPnrNo(int pnrNo){
+
+        bookingRepo.deleteById(pnrNo);
+    }
 }
