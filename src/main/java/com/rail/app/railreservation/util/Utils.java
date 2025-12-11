@@ -1,4 +1,4 @@
-package com.rail.app.railreservation.commons;
+package com.rail.app.railreservation.util;
 
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
 import com.rail.app.railreservation.trainmanagement.entity.Timing;

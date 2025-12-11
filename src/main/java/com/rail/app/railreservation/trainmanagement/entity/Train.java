@@ -1,8 +1,8 @@
-package com.rail.app.railreservation.commons.entity;
+package com.rail.app.railreservation.trainmanagement.entity;
 
 
-import com.rail.app.railreservation.commons.enums.Day;
-import com.rail.app.railreservation.commons.enums.JourneyClass;
+import com.rail.app.railreservation.trainmanagement.enums.Day;
+import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

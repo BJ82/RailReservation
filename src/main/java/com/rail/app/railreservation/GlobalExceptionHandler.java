@@ -1,4 +1,4 @@
-package com.rail.app.railreservation.commons;
+package com.rail.app.railreservation;
 
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;

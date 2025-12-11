@@ -1,11 +1,8 @@
 package com.rail.app.railreservation.trainmanagement.service;
 
-import com.rail.app.railreservation.commons.entity.Train;
-import com.rail.app.railreservation.commons.repository.RouteRepository;
-import com.rail.app.railreservation.commons.repository.TrainRepository;
-import com.rail.app.railreservation.commons.service.RouteInfoService;
-import com.rail.app.railreservation.commons.service.TrainInfoService;
-import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
+import com.rail.app.railreservation.route.service.RouteInfoService;
+import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.AllTrainResponse;
@@ -18,9 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TrainService {

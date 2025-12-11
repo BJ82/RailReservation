@@ -1,7 +1,7 @@
-package com.rail.app.railreservation.commons.service;
+package com.rail.app.railreservation.trainmanagement.service;
 
-import com.rail.app.railreservation.commons.entity.Train;
-import com.rail.app.railreservation.commons.repository.TrainRepository;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
+import com.rail.app.railreservation.trainmanagement.repository.TrainRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

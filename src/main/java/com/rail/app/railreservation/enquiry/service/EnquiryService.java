@@ -4,16 +4,15 @@ import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.service.BookingInfoTrackerService;
 import com.rail.app.railreservation.booking.service.BookingService;
-import com.rail.app.railreservation.commons.Utils;
-import com.rail.app.railreservation.commons.entity.Train;
-import com.rail.app.railreservation.commons.repository.RouteRepository;
-import com.rail.app.railreservation.commons.service.RouteInfoService;
-import com.rail.app.railreservation.commons.service.TrainInfoService;
+import com.rail.app.railreservation.util.Utils;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
+import com.rail.app.railreservation.route.service.RouteInfoService;
+import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
 import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
-import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
 import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,10 +47,6 @@ public class EnquiryService {
         this.mapper = mapper;
     }
 
-
-    /*public TrainEnquiryResponse trainEnquiry(int trainNo){
-
-    }*/
 
     public List<TrainEnquiryResponse> trainEnquiry(String src,String dest) throws TrainNotFoundException {
 

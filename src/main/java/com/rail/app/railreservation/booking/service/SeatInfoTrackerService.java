@@ -7,8 +7,8 @@ import com.rail.app.railreservation.booking.entity.SeatNoTracker;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.booking.repository.SeatCountRepository;
 import com.rail.app.railreservation.booking.repository.SeatNoTrackerRepository;
-import com.rail.app.railreservation.commons.Utils;
-import com.rail.app.railreservation.commons.enums.JourneyClass;
+import com.rail.app.railreservation.util.Utils;
+import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

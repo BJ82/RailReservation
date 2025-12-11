@@ -7,16 +7,17 @@ import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
-import com.rail.app.railreservation.commons.Utils;
-import com.rail.app.railreservation.commons.entity.Train;
-import com.rail.app.railreservation.commons.repository.RouteRepository;
-import com.rail.app.railreservation.commons.service.TrainInfoService;
-import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.util.Utils;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
+import com.rail.app.railreservation.route.service.RouteInfoService;
+import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
+import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -41,7 +42,7 @@ public class BookingService {
 
     private final TrainInfoService trainInfoService;
 
-    private final RouteRepository routeRepo;
+    private final RouteInfoService routeInfoService;
 
     private final SeatInfoTrackerService seatInfoTrackerService;
 
@@ -51,18 +52,21 @@ public class BookingService {
 
     private final ModelMapper mapper;
 
-    public BookingService(RouteRepository routeRepo, TrainInfoService trainInfoService,
+    private final int TOTAL_NO_OF_SEATS;
+
+    public BookingService(TrainInfoService trainInfoService, RouteInfoService routeInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
                           BookingInfoTrackerService bookingInfoTrackerService,
                           BookingOpenInfoTrackerService bookingOpenInfoTrackerService,
-                          ModelMapper mapper) {
+                          ModelMapper mapper,@Value("${total.no.of.seats}") int TOTAL_NO_OF_SEATS) {
 
-        this.routeRepo = routeRepo;
         this.trainInfoService = trainInfoService;
+        this.routeInfoService = routeInfoService;
         this.seatInfoTrackerService = seatInfoTrackerService;
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingOpenInfoTrackerService = bookingOpenInfoTrackerService;
         this.mapper = mapper;
+        this.TOTAL_NO_OF_SEATS = TOTAL_NO_OF_SEATS;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
@@ -234,7 +238,8 @@ public class BookingService {
         AtomicInteger lstAllotedSeatNum;
         lstAllotedSeatNum = new AtomicInteger(seatInfoTrackerService.getLastAllocatedSeatNo(request));
 
-        int seatsAvailable = 4 - seatInfoTrackerService.getLastAllocatedSeatNo(request);
+
+        int seatsAvailable = TOTAL_NO_OF_SEATS - seatInfoTrackerService.getLastAllocatedSeatNo(request);
 
         for(int i=1;i<=seatsAvailable;i++){
 
@@ -352,7 +357,7 @@ public class BookingService {
         routeID = train.getRouteId();
 
         Route r;
-        r = routeRepo.findByRouteID(routeID).get();
+        r = routeInfoService.getByRouteId(routeID).get();
 
         return new ArrayList<>(r.getStations());
     }
@@ -361,7 +366,7 @@ public class BookingService {
 
             boolean isRouteValid = false;
 
-            Route route = routeRepo.findByRouteID(trn.getRouteId()).get();
+            Route route = routeInfoService.getByRouteId(trn.getRouteId()).get();
 
             List<String> stns = route.getStations();
 
@@ -376,7 +381,7 @@ public class BookingService {
 
     private List<Integer> getOverlappingRoutes(String src, String dest){
 
-        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+        List<Route> routes = routeInfoService.containsSrcOrDest(src,dest);
 
         List<Route> overlappingRoutes = new ArrayList<>(routes);
 
@@ -392,7 +397,7 @@ public class BookingService {
 
     private Optional<Integer> getRouteId(String src, String dest){
 
-        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+        List<Route> routes = routeInfoService.containsSrcOrDest(src,dest);
 
         return routes.stream().filter(r->{   boolean isTrue = false;
             if(r.getStations().get(0).equals(src)){

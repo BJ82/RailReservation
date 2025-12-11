@@ -8,7 +8,7 @@ import com.rail.app.railreservation.booking.entity.BookingOpen;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
-import com.rail.app.railreservation.commons.Utils;
+import com.rail.app.railreservation.util.Utils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -32,9 +32,9 @@ public class BookingInfoTrackerService {
                              BookingStatus BOOKING_STATUS,int seatNumber){
 
         Booking bkng =  bookingRepo.save(new Booking(psngr.getName(), psngr.getAge(), psngr.getSex(),
-                                                    request.getTrainNo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getStartDt()),
+                                                    request.getTrainNo(), Utils.toLocalDate(request.getStartDt()),
                                                     Utils.toLocalDate(request.getEndDt()),
-                                                    request.getFrom(),request.getTo(), com.rail.app.railreservation.commons.Utils.toLocalDate(request.getDoj()),
+                                                    request.getFrom(),request.getTo(), Utils.toLocalDate(request.getDoj()),
                                                     request.getJourneyClass(), BOOKING_STATUS, Timestamp.from(Instant.now()),
                                                     seatNumber));
 

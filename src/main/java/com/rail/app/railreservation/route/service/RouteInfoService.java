@@ -1,8 +1,8 @@
-package com.rail.app.railreservation.commons.service;
+package com.rail.app.railreservation.route.service;
 
-import com.rail.app.railreservation.commons.repository.RouteRepository;
+import com.rail.app.railreservation.route.repository.RouteRepository;
 import org.springframework.stereotype.Service;
-import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.route.entity.Route;
 
 import java.util.ArrayList;
 import java.util.List;

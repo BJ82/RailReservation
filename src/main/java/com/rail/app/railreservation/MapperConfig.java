@@ -1,4 +1,4 @@
-package com.rail.app.railreservation.commons.config;
+package com.rail.app.railreservation;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;

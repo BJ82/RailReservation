@@ -1,6 +1,6 @@
 package com.rail.app.railreservation.trainmanagement.service;
 
-import com.rail.app.railreservation.commons.repository.TrainRepository;
+import com.rail.app.railreservation.trainmanagement.repository.TrainRepository;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableAddRequest;
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableAddResponse;

@@ -4,7 +4,7 @@ import com.rail.app.railreservation.booking.dto.BookingOpenRequest;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.BookingOpen;
 import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
-import com.rail.app.railreservation.commons.Utils;
+import com.rail.app.railreservation.util.Utils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
