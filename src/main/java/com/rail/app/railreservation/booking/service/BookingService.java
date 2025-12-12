@@ -415,7 +415,6 @@ public class BookingService {
                                     .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
 
         if(bookingToCancel.getBookingStatus().equals(BookingStatus.CONFIRMED)){
-            //TODO UPDATE WAITING TICKETS
 
             int seatNo = bookingToCancel.getSeatNo();
 
@@ -423,9 +422,27 @@ public class BookingService {
                                                                                 bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
                                                                                 bookingToCancel.getStartDt(),bookingToCancel.getEndDt()).orElse(new ArrayList<>());
 
-        }else{
-            bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
+            List<Booking> allBookings = bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel).orElse(new ArrayList<>());
+
+            Booking bookingToMoveConfirmTo = null;
+
+            for(Booking bookingWithStatusWait:waitingList){
+
+                    if(isRouteCompatible(bookingWithStatusWait,allBookings)){
+                        bookingToMoveConfirmTo = bookingWithStatusWait;
+                        break;
+                    }
+            }
+
+            if(bookingToMoveConfirmTo != null){
+
+                bookingInfoTrackerService.changeBookingToConfirm(bookingToMoveConfirmTo.getPnr(),seatNo);
+            }
+
+
         }
+
+        bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
 
         return "Deleted Booking For PnrNo:"+pnrNo;
     }

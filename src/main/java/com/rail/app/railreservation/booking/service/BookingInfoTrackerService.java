@@ -10,6 +10,7 @@ import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import com.rail.app.railreservation.util.Utils;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -43,6 +44,12 @@ public class BookingInfoTrackerService {
         return bkng.getPnr();
     }
 
+    public int trackBooking(Booking booking){
+
+        booking = bookingRepo.save(booking);
+        return booking.getPnr();
+    }
+
     public List<Booking> getBookingBySeatNumber(int seatNumber,BookingRequest request){
 
         return bookingRepo.findBySeatNo(seatNumber,request.getTrainNo(),
@@ -52,6 +59,14 @@ public class BookingInfoTrackerService {
 
     }
 
+    public Optional<List<Booking>> getBookingBySeatNumber(int seatNumber,Booking booking){
+
+        return Optional.of(bookingRepo.findBySeatNo(seatNumber, booking.getTrainNo(),
+                                                                booking.getJourneyClass(),
+                                                                booking.getStartDt(),
+                                                                booking.getEndDt()));
+
+    }
 
     public void trackBookingOpen(int trainNo, BookingOpenRequest request){
 
@@ -80,4 +95,10 @@ public class BookingInfoTrackerService {
         return bookingRepo.findByBookingStatus(bookingStatus,trainNo,jrnyClass,strtDt,endDt);
 
     }
+
+    public void changeBookingToConfirm(int pnrNo,int seatNoToAllocate){
+
+        bookingRepo.updateBooking(pnrNo,seatNoToAllocate,BookingStatus.CONFIRMED);
+    }
+
 }
