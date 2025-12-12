@@ -83,7 +83,24 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
 
     @Query("SELECT b FROM Booking b " +
-           "FROM Booking b " +
            "WHERE b.pnr = :pnrNo")
     Optional<Booking> findBookingstatus(@Param("pnrNo") int pnrNo);
+
+
+
+
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.bookingStatus = :bookingStatus " +
+            "AND b.trainNo = :trainNo " +
+            "AND b.journeyClass = :jrnyClass " +
+            "AND b.startDt = :strtDt " +
+            "AND b.endDt = :endDt")
+    Optional<List<Booking>> findByBookingStatus(@Param("bookingStatus") BookingStatus bookingStatus,
+                                      @Param("trainNo") int trainNo,
+                                      @Param("jrnyClass") JourneyClass jrnyClass,
+                                      @Param("strtDt") LocalDate strtDt,
+                                      @Param("endDt") LocalDate endDt);
+
+
 }

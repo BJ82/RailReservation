@@ -8,11 +8,13 @@ import com.rail.app.railreservation.booking.entity.BookingOpen;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
+import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import com.rail.app.railreservation.util.Utils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,5 +71,13 @@ public class BookingInfoTrackerService {
     public void deleteBookingByPnrNo(int pnrNo){
 
         bookingRepo.deleteById(pnrNo);
+    }
+
+    public Optional<List<Booking>> getWaitingList(BookingStatus bookingStatus,int trainNo,
+                                                  JourneyClass jrnyClass, LocalDate strtDt,
+                                                  LocalDate endDt){
+
+        return bookingRepo.findByBookingStatus(bookingStatus,trainNo,jrnyClass,strtDt,endDt);
+
     }
 }

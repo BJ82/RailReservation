@@ -411,13 +411,18 @@ public class BookingService {
 
     public String cancelBooking(int pnrNo) throws PnrNoIncorrectException{
 
-        Booking booking = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
+        Booking bookingToCancel = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
                                     .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
 
-        if(booking.getBookingStatus().equals(BookingStatus.CONFIRMED)){
+        if(bookingToCancel.getBookingStatus().equals(BookingStatus.CONFIRMED)){
             //TODO UPDATE WAITING TICKETS
 
-            int seatNo = booking.getSeatNo();
+            int seatNo = bookingToCancel.getSeatNo();
+
+            List<Booking> waitingList = bookingInfoTrackerService.getWaitingList(bookingToCancel.getBookingStatus(),
+                                                                                bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
+                                                                                bookingToCancel.getStartDt(),bookingToCancel.getEndDt()).orElse(new ArrayList<>());
+
         }else{
             bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
         }

@@ -4,7 +4,7 @@ import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
-import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.service.EnquiryService;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
@@ -63,7 +63,7 @@ public class EnquiryController {
     }
 
     @GetMapping("pnrs/{pnrNo}")
-    public ResponseEntity<PnrEnquiryResponse> pnrEnquiry(@PathVariable("pnrNo") int pnrNo) throws PnrNotFoundException {
+    public ResponseEntity<PnrEnquiryResponse> pnrEnquiry(@PathVariable("pnrNo") int pnrNo) throws PnrNoIncorrectException {
 
         PnrEnquiryResponse pnrEnquiryResponse;
         pnrEnquiryResponse = enquiryService.pnrEnquiry(pnrNo);

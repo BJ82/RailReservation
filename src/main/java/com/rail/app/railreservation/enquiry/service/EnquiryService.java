@@ -4,6 +4,7 @@ import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.service.BookingInfoTrackerService;
 import com.rail.app.railreservation.booking.service.BookingService;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
 import com.rail.app.railreservation.util.Utils;
 import com.rail.app.railreservation.trainmanagement.entity.Train;
 import com.rail.app.railreservation.route.service.RouteInfoService;
@@ -14,7 +15,6 @@ import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
-import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
@@ -176,11 +176,11 @@ public class EnquiryService {
         return seatEnquiryResponse;
     }
 
-    public PnrEnquiryResponse pnrEnquiry(int pnrNo) throws PnrNotFoundException {
+    public PnrEnquiryResponse pnrEnquiry(int pnrNo) throws PnrNoIncorrectException {
 
         Booking booking;
         booking = bookingInfoTrackerService.getBookingByPnrNo(pnrNo).
-                  orElseThrow(() -> new PnrNotFoundException("Invalid Pnr No.Could not find booking corresponding to pnr no:"+pnrNo));
+                  orElseThrow(() -> new PnrNoIncorrectException("Invalid Pnr No.Could not find booking corresponding to pnr no:"+pnrNo));
 
 
         PnrEnquiryResponse pnrEnquiryResponse;
