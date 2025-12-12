@@ -424,19 +424,19 @@ public class BookingService {
 
             List<Booking> allBookings = bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel).orElse(new ArrayList<>());
 
-            Booking bookingToMoveConfirmTo = null;
+            Booking bookingToConfirm = null;
 
             for(Booking bookingWithStatusWait:waitingList){
 
                     if(isRouteCompatible(bookingWithStatusWait,allBookings)){
-                        bookingToMoveConfirmTo = bookingWithStatusWait;
+                        bookingToConfirm = bookingWithStatusWait;
                         break;
                     }
             }
 
-            if(bookingToMoveConfirmTo != null){
+            if(bookingToConfirm != null){
 
-                bookingInfoTrackerService.changeBookingToConfirm(bookingToMoveConfirmTo.getPnr(),seatNo);
+                bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
             }
 
 
