@@ -382,7 +382,7 @@ public class BookingService {
 
                 List<String> stns = route.getStations();
 
-                if(stns.contains(jurnyStartStn) && stns.contains(jurnyEndStn)) {
+                if(routeInfoService.checkIfRouteContains(jurnyStartStn,jurnyEndStn,route)) {
 
                     if(stns.indexOf(jurnyStartStn) < stns.indexOf(jurnyEndStn)) {
 

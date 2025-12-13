@@ -99,6 +99,14 @@ public class RouteInfoService {
         return getByRouteId(routeId).get();
     }
 
+    public boolean checkIfRouteContains(String stn1,String stn2,Route routeToCheck){
+
+        List<String> stations = routeToCheck.getStations();
+
+        return stations.contains(stn1) && stations.contains(stn2);
+
+    }
+
 }
 
 
