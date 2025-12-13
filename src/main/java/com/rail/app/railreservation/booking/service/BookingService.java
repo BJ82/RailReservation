@@ -354,18 +354,16 @@ public class BookingService {
 
     private List<String> getAllStations(int trainNo){
 
-        Train train;
-        int routeID;
-        Route r;
-
         List<String> allStations = new ArrayList<>();
 
-        if(trainInfoService.getByTrainNo(trainNo).isPresent()){
+        Optional<Train> trainOpt = trainInfoService.getByTrainNo(trainNo);
 
-            train = trainInfoService.getByTrainNo(trainNo).get();
-            routeID = train.getRouteId();
+        if(trainOpt.isPresent()){
 
-            r = routeInfoService.getByRouteId(routeID).get();
+            Train train = trainOpt.get();
+            int routeID = train.getRouteId();
+
+            Route r = routeInfoService.getByRouteId(routeID).get();
             allStations.addAll(r.getStations());
         }
 
@@ -376,14 +374,18 @@ public class BookingService {
 
             boolean isRouteValid = false;
 
-            Route route = routeInfoService.getByRouteId(trn.getRouteId()).get();
+            Optional<Route> routeOpt = routeInfoService.getByRouteId(trn.getRouteId());
 
-            if(routeInfoService.getByRouteId(trn.getRouteId()).isPresent()){
+            if(routeOpt.isPresent()){
+
+                Route route = routeOpt.get();
 
                 List<String> stns = route.getStations();
 
-                if(stns.contains(jurnyStartStn) && stns.contains(jurnyEndStn)){
-                    if(stns.indexOf(jurnyStartStn) < stns.indexOf(jurnyEndStn)){
+                if(stns.contains(jurnyStartStn) && stns.contains(jurnyEndStn)) {
+
+                    if(stns.indexOf(jurnyStartStn) < stns.indexOf(jurnyEndStn)) {
+
                         isRouteValid = true;
                     }
                 }
