@@ -88,11 +88,11 @@ public class BookingInfoTrackerService {
         bookingRepo.deleteById(pnrNo);
     }
 
-    public Optional<List<Booking>> getWaitingList(BookingStatus bookingStatus,int trainNo,
+    public Optional<List<Booking>> getWaitingList(int trainNo,
                                                   JourneyClass jrnyClass, LocalDate strtDt,
                                                   LocalDate endDt){
 
-        return bookingRepo.findByBookingStatus(bookingStatus,trainNo,jrnyClass,strtDt,endDt);
+        return bookingRepo.findByBookingStatus(BookingStatus.WAITING,trainNo,jrnyClass,strtDt,endDt);
 
     }
 

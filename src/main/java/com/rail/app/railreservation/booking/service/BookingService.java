@@ -414,13 +414,16 @@ public class BookingService {
         Booking bookingToCancel = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
                                     .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
 
+        logger.info("Processing Request To Cancel Booking For PnrNo:"+pnrNo);
+
         if(bookingToCancel.getBookingStatus().equals(BookingStatus.CONFIRMED)){
 
             int seatNo = bookingToCancel.getSeatNo();
 
-            List<Booking> waitingList = bookingInfoTrackerService.getWaitingList(bookingToCancel.getBookingStatus(),
-                                                                                bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
+            List<Booking> waitingList = bookingInfoTrackerService.getWaitingList(bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
                                                                                 bookingToCancel.getStartDt(),bookingToCancel.getEndDt()).orElse(new ArrayList<>());
+
+            waitingList = waitingList.stream().sorted((b1,b2)->Integer.compare(b1.getPnr(), b2.getPnr())).toList();
 
             List<Booking> allBookings = bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel).orElse(new ArrayList<>());
 
@@ -428,7 +431,7 @@ public class BookingService {
 
             for(Booking bookingWithStatusWait:waitingList){
 
-                    if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings)){
+                    if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings) || allBookings.size() == 1){
                         bookingToConfirm = bookingWithStatusWait;
                         break;
                     }
@@ -437,12 +440,15 @@ public class BookingService {
             if(bookingToConfirm != null){
 
                 bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
+                logger.info("Changed Booking Status For PnrNo:"+bookingToConfirm.getPnr()+" From Waiting To Confirmed");
             }
 
 
         }
 
         bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
+
+        logger.info("Booking Cancelled For PnrNo:"+pnrNo);
 
         return "Deleted Booking For PnrNo:"+pnrNo;
     }
