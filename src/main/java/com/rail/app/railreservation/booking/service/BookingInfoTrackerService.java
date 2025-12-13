@@ -10,7 +10,6 @@ import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import com.rail.app.railreservation.util.Utils;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;

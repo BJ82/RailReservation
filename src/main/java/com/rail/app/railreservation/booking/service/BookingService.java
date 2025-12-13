@@ -37,7 +37,7 @@ public class BookingService {
 
     private final Set<Integer> seatNumbers;
 
-    private BookingStatus BOOKING_STATUS = BookingStatus.CONFIRMED;
+    private BookingStatus bookingStatus = BookingStatus.CONFIRMED;
 
     private final List<Integer> pnrs;
 
@@ -53,13 +53,13 @@ public class BookingService {
 
     private final ModelMapper mapper;
 
-    private final int TOTAL_NO_OF_SEATS;
+    private final int totalNoOfSeats;
 
     public BookingService(TrainInfoService trainInfoService, RouteInfoService routeInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
                           BookingInfoTrackerService bookingInfoTrackerService,
                           BookingOpenInfoTrackerService bookingOpenInfoTrackerService,
-                          ModelMapper mapper,@Value("${total.no.of.seats}") int TOTAL_NO_OF_SEATS) {
+                          ModelMapper mapper,@Value("${total.no.of.seats}") int totalNoOfSeats) {
 
         this.trainInfoService = trainInfoService;
         this.routeInfoService = routeInfoService;
@@ -67,7 +67,7 @@ public class BookingService {
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingOpenInfoTrackerService = bookingOpenInfoTrackerService;
         this.mapper = mapper;
-        this.TOTAL_NO_OF_SEATS = TOTAL_NO_OF_SEATS;
+        this.totalNoOfSeats = totalNoOfSeats;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
@@ -167,17 +167,17 @@ public class BookingService {
 
                 seatNumber = new ArrayList<>(seatNumbers).get(i);
                 lastSeatNumber = seatNumber;
-                BOOKING_STATUS = BookingStatus.CONFIRMED;
+                bookingStatus = BookingStatus.CONFIRMED;
                 seatCount++;
             }
             else {
 
                 seatNumber = 0;
-                BOOKING_STATUS = BookingStatus.WAITING;
+                bookingStatus = BookingStatus.WAITING;
             }
 
 
-            int pnrNo = bookingInfoTrackerService.trackBooking(psngr,request,BOOKING_STATUS,seatNumber);
+            int pnrNo = bookingInfoTrackerService.trackBooking(psngr,request,bookingStatus,seatNumber);
 
             pnrs.add(i,pnrNo);
 
@@ -208,17 +208,17 @@ public class BookingService {
             if(j < seatNumbers.size()){
 
                 seatNumber = new ArrayList<>(seatNumbers).get(j);
-                BOOKING_STATUS = BookingStatus.CONFIRMED;
+                bookingStatus = BookingStatus.CONFIRMED;
             }
             else {
 
                 seatNumber = 0;
-                BOOKING_STATUS = BookingStatus.WAITING;
+                bookingStatus = BookingStatus.WAITING;
             }
 
             bookedPassenger.setPnr(pnrs.get(j));
             bookedPassenger.setSeatNo(seatNumber);
-            bookedPassenger.setStatus(BOOKING_STATUS);
+            bookedPassenger.setStatus(bookingStatus);
 
             bookingResponse.getPassengerList().add(bookedPassenger);
 
@@ -240,7 +240,7 @@ public class BookingService {
         lstAllotedSeatNum = new AtomicInteger(seatInfoTrackerService.getLastAllocatedSeatNo(request));
 
 
-        int seatsAvailable = TOTAL_NO_OF_SEATS - seatInfoTrackerService.getLastAllocatedSeatNo(request);
+        int seatsAvailable = totalNoOfSeats - seatInfoTrackerService.getLastAllocatedSeatNo(request);
 
         for(int i=1;i<=seatsAvailable;i++){
 
@@ -266,7 +266,8 @@ public class BookingService {
 
     private Set<Integer> getSeatNosBefore(BookingRequest request){
 
-        String src,dest;
+        String src;
+        String dest;
 
         Set<Integer> seatNums = new LinkedHashSet<>();
 
@@ -299,9 +300,10 @@ public class BookingService {
 
             List<Booking> bookings = bookingInfoTrackerService.getBookingBySeatNumber(num,request);
 
-               String src,dest;
-                Integer routeID;
-                boolean isOverlapp = false;
+               String src;
+               String dest
+               Integer routeID;
+               boolean isOverlapp = false;
 
                 for(Booking bkng:bookings){
 
@@ -325,7 +327,8 @@ public class BookingService {
 
     private Set<Integer> getSeatNosAfter(BookingRequest request){
 
-        String src,dest;
+        String src;
+        String dest;
 
         Set<Integer> seatNums = new LinkedHashSet<>();
 
@@ -352,15 +355,21 @@ public class BookingService {
     private List<String> getAllStations(int trainNo){
 
         Train train;
-        train = trainInfoService.getByTrainNo(trainNo).get();
-
         int routeID;
-        routeID = train.getRouteId();
-
         Route r;
-        r = routeInfoService.getByRouteId(routeID).get();
 
-        return new ArrayList<>(r.getStations());
+        List<String> allStations = new ArrayList<>();
+
+        if(trainInfoService.getByTrainNo(trainNo).isPresent()){
+
+            train = trainInfoService.getByTrainNo(trainNo).get();
+            routeID = train.getRouteId();
+
+            r = routeInfoService.getByRouteId(routeID).get();
+            allStations.addAll(r.getStations());
+        }
+
+        return allStations;
     }
 
     private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
@@ -369,12 +378,16 @@ public class BookingService {
 
             Route route = routeInfoService.getByRouteId(trn.getRouteId()).get();
 
-            List<String> stns = route.getStations();
+            if(routeInfoService.getByRouteId(trn.getRouteId()).isPresent()){
 
-            if(stns.contains(jurnyStartStn) && stns.contains(jurnyEndStn)){
-                if(stns.indexOf(jurnyStartStn) < stns.indexOf(jurnyEndStn)){
-                    isRouteValid = true;
+                List<String> stns = route.getStations();
+
+                if(stns.contains(jurnyStartStn) && stns.contains(jurnyEndStn)){
+                    if(stns.indexOf(jurnyStartStn) < stns.indexOf(jurnyEndStn)){
+                        isRouteValid = true;
+                    }
                 }
+
             }
 
            return Utils.toOptional(isRouteValid);
@@ -414,7 +427,7 @@ public class BookingService {
         Booking bookingToCancel = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
                                     .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
 
-        logger.info("Processing Request To Cancel Booking For PnrNo:"+pnrNo);
+        logger.info("Processing Request To Cancel Booking For PnrNo:{}",pnrNo);
 
         if(bookingToCancel.getBookingStatus().equals(BookingStatus.CONFIRMED)){
 
@@ -440,7 +453,7 @@ public class BookingService {
             if(bookingToConfirm != null){
 
                 bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
-                logger.info("Changed Booking Status For PnrNo:"+bookingToConfirm.getPnr()+" From Waiting To Confirmed");
+                logger.info("Changed Booking Status For PnrNo:{},From Waiting To Confirmed",bookingToConfirm.getPnr());
             }
 
 
@@ -448,7 +461,7 @@ public class BookingService {
 
         bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
 
-        logger.info("Booking Cancelled For PnrNo:"+pnrNo);
+        logger.info("Booking Cancelled For PnrNo:{}",pnrNo);
 
         return "Deleted Booking For PnrNo:"+pnrNo;
     }
