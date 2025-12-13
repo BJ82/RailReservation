@@ -94,7 +94,7 @@ public class RouteInfoService {
 
     private Route resolveRoute(Booking booking){
 
-        int routeId = getBySrcAndDest(booking.getStartFrom(),booking.getEndAt());
+        int routeId = getBySrcAndDest(booking.getStartFrom(),booking.getEndAt()).get();
 
         return getByRouteId(routeId).get();
     }

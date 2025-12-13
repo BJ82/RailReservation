@@ -95,7 +95,7 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
             "AND b.trainNo = :trainNo " +
             "AND b.journeyClass = :jrnyClass " +
             "AND b.startDt = :strtDt " +
-            "AND b.endDt = :endDt" +
+            "AND b.endDt = :endDt " +
             "ORDER By pnr ASC")
     Optional<List<Booking>> findByBookingStatus(@Param("bookingStatus") BookingStatus bookingStatus,
                                       @Param("trainNo") int trainNo,
@@ -107,8 +107,8 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
     @Query("UPDATE Booking b " +
            "SET b.seatNo = :seatNoToAllocate, b.bookingStatus = :bookingStatus " +
-           "WHERE b.pnrNo = :pnrNo ")
-    Optional<List<Booking>> updateBooking(@Param("pnrNo") int pnrNo,
+           "WHERE b.pnr = :pnr ")
+    Optional<List<Booking>> updateBooking(@Param("pnr") int pnr,
                                           @Param("seatNoToAllocate") int seatNoToAllocate,
                                           @Param("bookingStatus") BookingStatus bookingStatus);
 }
