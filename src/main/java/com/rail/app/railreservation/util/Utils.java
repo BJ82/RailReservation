@@ -1,10 +1,11 @@
-package com.rail.app.railreservation.commons;
+package com.rail.app.railreservation.util;
 
 import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
 import com.rail.app.railreservation.trainmanagement.entity.Timing;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
 import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -14,10 +15,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+@Component
 public class Utils {
 
-    @Autowired
     private static TimeTableService timeTableService;
+
+    public Utils(TimeTableService timeTableService) {
+
+        this.timeTableService = timeTableService;
+    }
 
     public static LocalDate toLocalDate(String dateAsString){
 

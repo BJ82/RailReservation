@@ -1,6 +1,6 @@
 package com.rail.app.railreservation.enquiry.dto;
 
-import com.rail.app.railreservation.commons.enums.JourneyClass;
+import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SeatEnquiryRequest {
 
-    private int trainNo;
     private String trainName;
     private String startDt;
     private String endDt;

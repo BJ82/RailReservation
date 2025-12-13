@@ -1,6 +1,6 @@
-package com.rail.app.railreservation.commons.repository;
+package com.rail.app.railreservation.trainmanagement.repository;
 
-import com.rail.app.railreservation.commons.entity.Train;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

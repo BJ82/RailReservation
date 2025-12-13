@@ -17,7 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("timetable/")
+@RequestMapping("api/v1/timetable/")
 public class TimeTableController {
 
     private static final Logger logger = LogManager.getLogger(TimeTableController.class);
@@ -31,7 +31,7 @@ public class TimeTableController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("add")
+    @PostMapping
     public ResponseEntity<TimeTableAddResponse> add(@RequestBody TimeTableAddRequest tmtbladdreq) throws TimeTableWithoutTrainException, TimeTableAddFailException {
 
         logger.info(INSIDE_TIME_TABLE_CONTROLLER);
@@ -48,7 +48,7 @@ public class TimeTableController {
 
     }
 
-    @GetMapping("train/{trainNo}")
+    @GetMapping("trains/{trainNo}")
     public ResponseEntity<TimeTableEnquiryResponse> getTimeTable(@PathVariable("trainNo") int trainNo) throws TimeTableNotFoundException {
 
         logger.info(INSIDE_TIME_TABLE_CONTROLLER);

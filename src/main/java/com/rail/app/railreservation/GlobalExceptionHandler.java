@@ -1,11 +1,8 @@
-package com.rail.app.railreservation.commons;
+package com.rail.app.railreservation;
 
 import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
-import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
-import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
-import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
-import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
+import com.rail.app.railreservation.enquiry.exception.*;
 import com.rail.app.railreservation.signup.exception.UserPresentException;
 import com.rail.app.railreservation.trainmanagement.exception.DuplicateTrainException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableAddFailException;
@@ -104,12 +101,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
     }
 
-    @ExceptionHandler(PnrNotFoundException.class)
-    public ResponseEntity<String> pnrNotFoundExceptionHandler(PnrNotFoundException pnrNotFoundEx){
+    @ExceptionHandler(PnrNoIncorrectException.class)
+    public ResponseEntity<String> pnrNoIncorrectExceptionHandler(PnrNoIncorrectException pnrNoIncorrectEx){
 
-        logger.error(pnrNotFoundEx.getMessage());
+        logger.error(pnrNoIncorrectEx.getMessage());
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pnrNotFoundEx.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pnrNoIncorrectEx.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)

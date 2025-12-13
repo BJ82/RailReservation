@@ -17,7 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 
 @RestController
-@RequestMapping("train/")
+@RequestMapping("api/v1/trains")
 public class TrainsController {
 
     private static final Logger logger = LogManager.getLogger(TrainsController.class);
@@ -31,7 +31,7 @@ public class TrainsController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("add")
+    @PostMapping
     public ResponseEntity<TrainAddResponse> add(@RequestBody TrainAddRequest trnAddReq) throws DuplicateTrainException {
 
         logger.info(INSIDE_TRAIN_CONTROLLER);
@@ -48,7 +48,7 @@ public class TrainsController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("all")
+    @GetMapping
     public ResponseEntity<AllTrainResponse> getAllTrains() throws TrainNotFoundException, RouteNotFoundException {
 
         logger.info(INSIDE_TRAIN_CONTROLLER);
@@ -57,7 +57,5 @@ public class TrainsController {
         return ResponseEntity.ok().body(ts.getAllTrains());
 
     }
-
-
 
 }

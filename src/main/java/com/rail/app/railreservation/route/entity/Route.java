@@ -1,4 +1,4 @@
-package com.rail.app.railreservation.enquiry.entity;
+package com.rail.app.railreservation.route.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

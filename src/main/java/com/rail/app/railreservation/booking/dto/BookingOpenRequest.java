@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BookingOpenRequest {
 
-    private int trainNo;
     private String startDt;
     private String endDt;
 

@@ -1,7 +1,7 @@
-package com.rail.app.railreservation.commons.repository;
+package com.rail.app.railreservation.route.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.route.entity.Route;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

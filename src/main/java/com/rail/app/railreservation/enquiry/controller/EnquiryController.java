@@ -4,7 +4,7 @@ import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
-import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.service.EnquiryService;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
@@ -18,7 +18,7 @@ import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
 import java.util.List;
 
 @RestController
-@RequestMapping("enquiry/")
+@RequestMapping("api/v1/")
 public class EnquiryController {
 
     private static final Logger logger = LogManager.getLogger(EnquiryController.class);
@@ -31,8 +31,8 @@ public class EnquiryController {
         this.enquiryService = enquiryService;
     }
 
-    @GetMapping("train")
-    public ResponseEntity<List<TrainEnquiryResponse>> trainEnquiryByStation(@RequestParam String src,@RequestParam String dest)
+    @GetMapping("trains/{src}/{dest}")
+    public ResponseEntity<List<TrainEnquiryResponse>> trainEnquiryByStation(@PathVariable String src,@PathVariable String dest)
             throws TrainNotFoundException {
 
         logger.info(INSIDE_ENQUIRY_CONTROLLER);
@@ -41,7 +41,7 @@ public class EnquiryController {
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(src,dest));
     }
 
-    @GetMapping("train/{trainNo}")
+    @GetMapping("trains/{trainNo}")
     public ResponseEntity<TrainEnquiryResponse> trainEnquiryByTrainNo(@PathVariable("trainNo") int trnNo) throws TrainNotFoundException, RouteNotFoundException {
 
         logger.info(INSIDE_ENQUIRY_CONTROLLER);
@@ -50,20 +50,20 @@ public class EnquiryController {
         return ResponseEntity.ok().body(enquiryService.trainEnquiry(trnNo));
     }
 
-    @PostMapping("seats")
-    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@RequestBody SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
+    @PostMapping("seats/trains/{trainNo}")
+    public ResponseEntity<SeatEnquiryResponse> seatEnquiry(@PathVariable("trainNo")int trainNo,@RequestBody SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
 
         logger.info(INSIDE_ENQUIRY_CONTROLLER);
         logger.info("Processing request to find available seats");
 
         SeatEnquiryResponse seatEnquiryResponse;
-        seatEnquiryResponse = enquiryService.seatEnquiry(seatEnquiryRequest);
+        seatEnquiryResponse = enquiryService.seatEnquiry(trainNo,seatEnquiryRequest);
 
         return ResponseEntity.ok().body(seatEnquiryResponse);
     }
 
-    @GetMapping("pnr/{pnrNo}")
-    public ResponseEntity<PnrEnquiryResponse> pnrEnquiry(@PathVariable("pnrNo") int pnrNo) throws PnrNotFoundException {
+    @GetMapping("pnrs/{pnrNo}")
+    public ResponseEntity<PnrEnquiryResponse> pnrEnquiry(@PathVariable("pnrNo") int pnrNo) throws PnrNoIncorrectException {
 
         PnrEnquiryResponse pnrEnquiryResponse;
         pnrEnquiryResponse = enquiryService.pnrEnquiry(pnrNo);

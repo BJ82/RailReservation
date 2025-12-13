@@ -2,23 +2,22 @@ package com.rail.app.railreservation.enquiry.service;
 
 import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.Booking;
-import com.rail.app.railreservation.booking.repository.BookingRepository;
+import com.rail.app.railreservation.booking.service.BookingInfoTrackerService;
 import com.rail.app.railreservation.booking.service.BookingService;
-import com.rail.app.railreservation.commons.Utils;
-import com.rail.app.railreservation.commons.entity.Train;
-import com.rail.app.railreservation.commons.repository.RouteRepository;
-import com.rail.app.railreservation.commons.repository.TrainRepository;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
+import com.rail.app.railreservation.util.Utils;
+import com.rail.app.railreservation.trainmanagement.entity.Train;
+import com.rail.app.railreservation.route.service.RouteInfoService;
+import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
 import com.rail.app.railreservation.enquiry.dto.PnrEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryRequest;
 import com.rail.app.railreservation.enquiry.dto.SeatEnquiryResponse;
 import com.rail.app.railreservation.enquiry.dto.TrainEnquiryResponse;
-import com.rail.app.railreservation.enquiry.entity.Route;
+import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.enquiry.exception.InvalidSeatEnquiryException;
-import com.rail.app.railreservation.enquiry.exception.PnrNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.RouteNotFoundException;
 import com.rail.app.railreservation.enquiry.exception.TrainNotFoundException;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
-import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,28 +32,21 @@ public class EnquiryService {
 
     private static final Logger logger = LogManager.getLogger(EnquiryService.class);
     private static final String INSIDE_ENQUIRY_SERVICE = "Inside EnquiryService Service...";
-    private final RouteRepository routeRepo;
-    private final TrainRepository trainRepo;
-    private final BookingRepository bookingRepo;
+    private final RouteInfoService routeInfoService;
+    private final TrainInfoService trainInfoService;
+    private final BookingInfoTrackerService bookingInfoTrackerService;
     private final BookingService bookingService;
-    private final TimeTableService timeTableService;
-
     private final ModelMapper mapper;
 
-    public EnquiryService(RouteRepository routeRepo, TrainRepository trainRepo, BookingRepository bookingRepo,
-                          BookingService bookingService, TimeTableService timeTableService, ModelMapper mapper) {
-        this.routeRepo = routeRepo;
-        this.trainRepo = trainRepo;
-        this.bookingRepo = bookingRepo;
+    public EnquiryService(RouteInfoService routeInfoService, TrainInfoService trainInfoService, BookingInfoTrackerService bookingInfoTrackerService,
+                          BookingService bookingService, ModelMapper mapper) {
+        this.routeInfoService = routeInfoService;
+        this.trainInfoService = trainInfoService;
+        this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingService = bookingService;
-        this.timeTableService = timeTableService;
         this.mapper = mapper;
     }
 
-
-    /*public TrainEnquiryResponse trainEnquiry(int trainNo){
-
-    }*/
 
     public List<TrainEnquiryResponse> trainEnquiry(String src,String dest) throws TrainNotFoundException {
 
@@ -66,8 +57,8 @@ public class EnquiryService {
         // Step1: Obtain route ID for given source and destination
         Integer routeID = null;
 
-        if (getRouteId(src, dest).isPresent())
-            routeID = getRouteId(src, dest).get();
+        if (routeInfoService.getBySrcAndDest(src,dest).isPresent())
+            routeID = routeInfoService.getBySrcAndDest(src,dest).get();
 
         logger.info("Step1: Obtained routeID:{} for source:{} and destination:{}",routeID,src,dest);
 
@@ -86,7 +77,8 @@ public class EnquiryService {
         ModelMapper modelMapper = new ModelMapper();
 
         //Step3: Obtain trains that are running on parentRouteIds
-        List<Train> availableTrains = trainRepo.findByRouteIdIn(parentRouteIds);
+        List<Train> availableTrains = trainInfoService.getByRouteIds(parentRouteIds);
+
 
         if(availableTrains.isEmpty())
             throw new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest);
@@ -113,13 +105,13 @@ public class EnquiryService {
         logger.info("Searching For Train With TrainNo:{}", trainNo);
 
 
-        Train trn = trainRepo.findByTrainNo(trainNo).
+        Train trn = trainInfoService.getByTrainNo(trainNo).
                 orElseThrow(() -> new TrainNotFoundException("Train Not Found For TrainNo: " + trainNo, trainNo));
 
 
         Integer routeID = trn.getRouteId();
 
-        Route route= routeRepo.findByRouteID(routeID).orElseThrow(()->new RouteNotFoundException("Route Not Found For RouteID: "+routeID,routeID));
+        Route route= routeInfoService.getByRouteId(routeID).orElseThrow(()->new RouteNotFoundException("Route Not Found For RouteID: "+routeID,routeID));
         List<String> stations = route.getStations();
 
         TrainEnquiryResponse trainEnquiryResponse = new ModelMapper().map(trn, TrainEnquiryResponse.class);
@@ -130,22 +122,9 @@ public class EnquiryService {
     }
 
 
-    private Optional<Integer> getRouteId(String src, String dest){
-
-        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
-
-        return routes.stream().filter(r->{   boolean isTrue = false;
-            if(r.getStations().get(0).equals(src)){
-                if(r.getStations().get(r.getStations().size()-1).equals(dest))
-                    isTrue = true;
-            }
-            return isTrue;
-        }).map(r->r.getRouteID()).findFirst();
-    }
-
     private List<Integer> getParentRoutes(String src, String dest){
 
-        List<Route> routes = routeRepo.findBySrcAndDestn(src, dest);
+        List<Route> routes = routeInfoService.containsSrcOrDest(src,dest);
 
         return routes.stream().filter(r->{   boolean isTrue = false;
             if(r.getStations().contains(src)){
@@ -157,11 +136,10 @@ public class EnquiryService {
 
     }
 
-    public SeatEnquiryResponse seatEnquiry(SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
+    public SeatEnquiryResponse seatEnquiry(int trainNo,SeatEnquiryRequest seatEnquiryRequest) throws InvalidSeatEnquiryException, TimeTableNotFoundException {
 
         logger.info(INSIDE_ENQUIRY_SERVICE);
-        logger.info("Searching Available Seats In TrainNo:{}",seatEnquiryRequest.getTrainNo());
-
+        logger.info("Searching Available Seats In TrainNo:{}",trainNo);
 
         String src = seatEnquiryRequest.getFrom();
         String dest = seatEnquiryRequest.getTo();
@@ -169,14 +147,15 @@ public class EnquiryService {
         List<Integer> parentRouteIds;
         parentRouteIds = new ArrayList<>(getParentRoutes(src, dest));
 
-        List<Train> availableTrains = trainRepo.findByRouteIdIn(parentRouteIds);
+        List<Train> availableTrains = trainInfoService.getByRouteIds(parentRouteIds);
+
 
         if(availableTrains.isEmpty())
             throw new InvalidSeatEnquiryException("Invalid Seat Enquiry Because ",
                                                   new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest));
 
        LocalDate startDate = Utils.toLocalDate(seatEnquiryRequest.getStartDt());
-       LocalDate dateOfArrival =  Utils.getArrivalDate(seatEnquiryRequest.getTrainNo(),src,startDate);
+       LocalDate dateOfArrival =  Utils.getArrivalDate(trainNo,src,startDate);
        LocalDate dateOfJourney = Utils.toLocalDate(seatEnquiryRequest.getDoj());
 
        if(!dateOfArrival.equals(dateOfJourney))
@@ -185,21 +164,23 @@ public class EnquiryService {
 
 
         BookingRequest bookingRequest = mapper.map(seatEnquiryRequest,BookingRequest.class);
+        bookingRequest.setTrainNo(trainNo);
 
         SeatEnquiryResponse seatEnquiryResponse = mapper.map(seatEnquiryRequest,SeatEnquiryResponse.class);
+        seatEnquiryResponse.setTrainNo(trainNo);
 
         int seatsAvailable;
-        seatsAvailable = bookingService.getSeatNumbers(bookingRequest).size();
+        seatsAvailable = bookingService.getAvailableSeatNumbers(bookingRequest).size();
         seatEnquiryResponse.setSeatsAvailable(seatsAvailable);
 
         return seatEnquiryResponse;
     }
 
-    public PnrEnquiryResponse pnrEnquiry(int pnrNo) throws PnrNotFoundException {
+    public PnrEnquiryResponse pnrEnquiry(int pnrNo) throws PnrNoIncorrectException {
 
         Booking booking;
-        booking = bookingRepo.findById(pnrNo).
-                  orElseThrow(() -> new PnrNotFoundException("Invalid Pnr No.Could not find booking corresponding to pnr no:"+pnrNo));
+        booking = bookingInfoTrackerService.getBookingByPnrNo(pnrNo).
+                  orElseThrow(() -> new PnrNoIncorrectException("Invalid Pnr No.Could not find booking corresponding to pnr no:"+pnrNo));
 
 
         PnrEnquiryResponse pnrEnquiryResponse;

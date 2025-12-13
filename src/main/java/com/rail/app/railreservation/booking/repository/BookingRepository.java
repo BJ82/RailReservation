@@ -2,13 +2,16 @@ package com.rail.app.railreservation.booking.repository;
 
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
-import com.rail.app.railreservation.commons.enums.JourneyClass;
+import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking,Integer> {
 
@@ -80,4 +83,36 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                                @Param("strtDt") LocalDate strtDt,
                                @Param("endDt") LocalDate endDt);
 
+
+    @Query("SELECT b FROM Booking b " +
+           "WHERE b.pnr = :pnrNo")
+    Optional<Booking> findBookingstatus(@Param("pnrNo") int pnrNo);
+
+
+
+
+
+    @Query("SELECT b FROM Booking b " +
+            "WHERE b.bookingStatus = :bookingStatus " +
+            "AND b.trainNo = :trainNo " +
+            "AND b.journeyClass = :jrnyClass " +
+            "AND b.startDt = :strtDt " +
+            "AND b.endDt = :endDt " +
+            "ORDER By pnr ASC")
+    Optional<List<Booking>> findByBookingStatus(@Param("bookingStatus") BookingStatus bookingStatus,
+                                      @Param("trainNo") int trainNo,
+                                      @Param("jrnyClass") JourneyClass jrnyClass,
+                                      @Param("strtDt") LocalDate strtDt,
+                                      @Param("endDt") LocalDate endDt);
+
+
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Booking b " +
+           "SET b.seatNo = :seatNoToAllocate, b.bookingStatus = :bookingStatus " +
+           "WHERE b.pnr = :pnr ")
+    void updateBooking(@Param("pnr") int pnr,
+                       @Param("seatNoToAllocate") int seatNoToAllocate,
+                       @Param("bookingStatus") BookingStatus bookingStatus);
 }
