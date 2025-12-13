@@ -1,8 +1,9 @@
 package com.rail.app.railreservation.route.service;
 
+import com.rail.app.railreservation.booking.entity.Booking;
+import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.route.repository.RouteRepository;
 import org.springframework.stereotype.Service;
-import com.rail.app.railreservation.route.entity.Route;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,4 +61,44 @@ public class RouteInfoService {
         }
     }
 
+    public boolean isRouteCompatible(Booking booking,List<Booking> bookings) {
+
+        String startFrom = booking.getStartFrom();
+        String endAt = booking.getEndAt();
+
+        List<String> stations;
+
+        String allStations;
+
+        boolean isCompatible = false;
+
+        for (Booking b : bookings) {
+
+            isCompatible = false;
+            stations = resolveRoute(b).getStations();
+            allStations = String.join("", stations);
+            if (allStations.indexOf(startFrom) == -1 || allStations.indexOf(startFrom) == allStations.indexOf(stations.getLast())) {
+
+                if (allStations.indexOf(endAt) == -1 || allStations.indexOf(endAt) == allStations.indexOf(stations.getFirst())) {
+
+                    isCompatible = true;
+                }
+            }
+
+            if(isCompatible == false)
+                break;
+        }
+
+        return isCompatible;
+    }
+
+    private Route resolveRoute(Booking booking){
+
+        int routeId = getBySrcAndDest(booking.getStartFrom(),booking.getEndAt());
+
+        return getByRouteId(routeId).get();
+    }
+
 }
+
+

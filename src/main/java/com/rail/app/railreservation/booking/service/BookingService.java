@@ -428,7 +428,7 @@ public class BookingService {
 
             for(Booking bookingWithStatusWait:waitingList){
 
-                    if(isRouteCompatible(bookingWithStatusWait,allBookings)){
+                    if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings)){
                         bookingToConfirm = bookingWithStatusWait;
                         break;
                     }
