@@ -1,6 +1,7 @@
 package com.rail.app.railreservation.booking.repository;
 
 import com.rail.app.railreservation.booking.entity.BookingOpen;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -17,6 +18,7 @@ class BookingOpenRepositoryTest {
 
     @Autowired
     private BookingOpenRepository bookingOpenRepoUnderTest;
+
 
     @Test
     void checkWhenBookingIsOpen() {
@@ -51,6 +53,13 @@ class BookingOpenRepositoryTest {
 
         //then
         assertThat(expected.isEmpty()).isTrue();
+
+    }
+
+    @AfterEach
+    void tearDown() {
+
+        bookingOpenRepoUnderTest.deleteAll();
 
     }
 }
