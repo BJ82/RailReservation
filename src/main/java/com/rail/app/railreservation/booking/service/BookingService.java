@@ -301,7 +301,7 @@ public class BookingService {
             List<Booking> bookings = bookingInfoTrackerService.getBookingBySeatNumber(num,request);
 
                String src;
-               String dest
+               String dest;
                Integer routeID;
                boolean isOverlapp = false;
 
