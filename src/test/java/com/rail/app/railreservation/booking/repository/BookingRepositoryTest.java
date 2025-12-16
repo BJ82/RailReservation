@@ -101,8 +101,26 @@ class BookingRepositoryTest {
     }
 
     @Test
-    @Disabled
-    void findCountOfSeatNumber() {
+    void testCountOfSeatNumber() {
+
+        //given
+        int trainNo = 1;
+        JourneyClass jrnyClass = JourneyClass.AC1;
+        LocalDate strtDt = startDate;
+        LocalDate endDt = endDate;
+        int seatNo = 1;
+
+        Booking booking3 = new Booking("FirstName",24,"M",1,startDate,endDate,
+                "stn5","stn7",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.CONFIRMED, Timestamp.valueOf(LocalDateTime.now()),1);
+
+        bookingRepo.save(booking3);
+
+        //when
+        int count = bookingRepo.findCountOfSeatNumber(trainNo,jrnyClass,strtDt,endDt,seatNo);
+
+        //then
+        assertThat(count).isEqualTo(2);
     }
 
     @Test
