@@ -5,7 +5,6 @@ import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.BookingOpen;
 import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -14,16 +13,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class BookingOpenInfoTrackerServiceTest {
+class BookingOpenInfoServiceTest {
 
     @Mock private BookingOpenRepository bookingOpenRepo;
-    private BookingOpenInfoTrackerService serviceUnderTest;
+    private BookingOpenInfoService serviceUnderTest;
 
     private LocalDate startDate;
     private LocalDate endDate;
@@ -35,7 +33,7 @@ class BookingOpenInfoTrackerServiceTest {
         pattern = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         startDate = LocalDate.now();
         endDate = startDate.plusDays(2);
-        serviceUnderTest = new BookingOpenInfoTrackerService(bookingOpenRepo);
+        serviceUnderTest = new BookingOpenInfoService(bookingOpenRepo);
 
     }
 
@@ -47,7 +45,7 @@ class BookingOpenInfoTrackerServiceTest {
                 new BookingOpenRequest(startDate.format(pattern),endDate.format(pattern));
 
         //when
-        serviceUnderTest.initBookingOpenInfoTracker(1,bookingOpenRequest);
+        serviceUnderTest.addBookingOpenInfo(1,bookingOpenRequest);
 
         //then
         verify(bookingOpenRepo).save(ArgumentMatchers.any(BookingOpen.class));
@@ -76,7 +74,7 @@ class BookingOpenInfoTrackerServiceTest {
         int trainNo=1;
 
         //when
-        serviceUnderTest.getBookingOpenByTrainNo(trainNo);
+        serviceUnderTest.getBookingOpenInfoByTrainNo(trainNo);
 
         //then
         verify(bookingOpenRepo).findByTrainNo(trainNo);

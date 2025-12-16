@@ -49,7 +49,7 @@ public class BookingService {
 
     private final BookingInfoTrackerService bookingInfoTrackerService;
 
-    private final BookingOpenInfoTrackerService bookingOpenInfoTrackerService;
+    private final BookingOpenInfoService bookingOpenInfoService;
 
     private final ModelMapper mapper;
 
@@ -58,14 +58,14 @@ public class BookingService {
     public BookingService(TrainInfoService trainInfoService, RouteInfoService routeInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
                           BookingInfoTrackerService bookingInfoTrackerService,
-                          BookingOpenInfoTrackerService bookingOpenInfoTrackerService,
+                          BookingOpenInfoService bookingOpenInfoService,
                           ModelMapper mapper,@Value("${total.no.of.seats}") int totalNoOfSeats) {
 
         this.trainInfoService = trainInfoService;
         this.routeInfoService = routeInfoService;
         this.seatInfoTrackerService = seatInfoTrackerService;
         this.bookingInfoTrackerService = bookingInfoTrackerService;
-        this.bookingOpenInfoTrackerService = bookingOpenInfoTrackerService;
+        this.bookingOpenInfoService = bookingOpenInfoService;
         this.mapper = mapper;
         this.totalNoOfSeats = totalNoOfSeats;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
@@ -89,7 +89,7 @@ public class BookingService {
                 trainNo,request.getStartDt(),request.getEndDt());
 
 
-        bookingOpenInfoTrackerService.initBookingOpenInfoTracker(trainNo,request);
+        bookingOpenInfoService.addBookingOpenInfo(trainNo,request);
 
         seatInfoTrackerService.initSeatInfoTracker(trainNo,request);
 
@@ -103,7 +103,7 @@ public class BookingService {
     public BookingOpenInfo getBookingOpenInfo(int trainNo){
 
         List<BookingOpen> bookingOpens;
-        bookingOpens = bookingOpenInfoTrackerService.getBookingOpenByTrainNo(trainNo);
+        bookingOpens = bookingOpenInfoService.getBookingOpenInfoByTrainNo(trainNo);
 
         List<BookingOpenDate> bookingOpenDates = new ArrayList<>();
 
@@ -128,7 +128,7 @@ public class BookingService {
                 .orElseThrow(() -> new InvalidBookingException("TrainNo:" + request.getTrainNo() + " Not Running " + "Between " +
                                                                 request.getFrom() + "And " + request.getTo()));
         //Check If Booking Is Allowed
-        bookingOpenInfoTrackerService.isBookingOpen(request).orElseThrow(()->new BookingNotOpenException("Booking Not Yet Open For TrainNo:"+request.getTrainNo()+" For Dates "+request.getStartDt()+" And "+request.getEndDt()
+        bookingOpenInfoService.isBookingOpen(request).orElseThrow(()->new BookingNotOpenException("Booking Not Yet Open For TrainNo:"+request.getTrainNo()+" For Dates "+request.getStartDt()+" And "+request.getEndDt()
                                                                       )
                                           );
 
