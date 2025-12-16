@@ -3,6 +3,7 @@ package com.rail.app.railreservation.booking.repository;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -25,27 +27,33 @@ class BookingRepositoryTest {
     @Autowired
     private BookingRepository bookingRepo;
 
+    @Autowired
+    private EntityManager entityManager;
+
     private LocalDate startDate;
     private LocalDate endDate;
     private DateTimeFormatter pattern;
 
+    private Booking booking1;
+    private Booking booking2;
+
     @BeforeEach
     void beforeEach() {
+
+        bookingRepo.deleteAll();
 
         pattern = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         startDate = LocalDate.now();
         endDate = startDate.plusDays(2);
-        bookingRepo.deleteAll();
 
-
-        Booking booking1 = new Booking("FirstName",24,"M",1,startDate,endDate,
+         booking1 = new Booking("FirstName",24,"M",1,startDate,endDate,
                 "stn1","stn5",startDate.plusDays(1),JourneyClass.AC1,
                 BookingStatus.CONFIRMED, Timestamp.valueOf(LocalDateTime.now()),1);
 
         bookingRepo.save(booking1);
 
 
-        Booking booking2 = new Booking("SecondName",25,"M",1,startDate,endDate,
+         booking2 = new Booking("SecondName",25,"M",1,startDate,endDate,
                 "stn1","stn5",startDate.plusDays(1),JourneyClass.AC1,
                 BookingStatus.WAITING, Timestamp.valueOf(LocalDateTime.now()),0);
 
@@ -64,7 +72,7 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void checkSeatNumbersHaveConfirmStatus() {
+    void testIfAllBookingsRetrievedBySeatNumberHaveConfirmStatus() {
         
         //given
          String startFrom = "stn1";
@@ -86,7 +94,10 @@ class BookingRepositoryTest {
 
         //then
         assertThat(bookings.size()).isEqualTo(1);
-        assertThat(bookings.getFirst().getBookingStatus()).isEqualTo(BookingStatus.CONFIRMED);
+
+        BookingStatus bkngStatus = bookings.getFirst().getBookingStatus();
+
+        assertThat(bkngStatus).isEqualTo(BookingStatus.CONFIRMED);
     }
 
     @Test
@@ -95,17 +106,44 @@ class BookingRepositoryTest {
     }
 
     @Test
-    @Disabled
-    void findBySeatNo() {
+    void testToFindAllBookingsWhichShareSameSeatNo() {
+
+        //given
+        Booking booking3 = new Booking("FirstName",24,"M",1,startDate,endDate,
+                "stn5","stn7",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.CONFIRMED, Timestamp.valueOf(LocalDateTime.now()),1);
+
+        bookingRepo.save(booking3);
+
+        //when
+        List<Booking> bookings = bookingRepo.findBySeatNo(1,1,
+                JourneyClass.AC1,startDate,endDate);
+
+        //then
+        assertThat(bookings.stream().
+                filter((b)->b.getSeatNo() == 1).
+                collect(Collectors.toList()).
+                size()).isEqualTo(2);
+
+
     }
 
     @Test
-    @Disabled
-    void findBookingstatus() {
+    void testToFindBookingtatusGivenPnrNo() {
+
+        //given
+        int pnrNo = 1;
+
+        //when
+        BookingStatus bookingStatus = bookingRepo.findBookingstatus(pnrNo).get();
+
+        //then
+        assertThat(bookingStatus).isEqualTo(BookingStatus.CONFIRMED);
+
     }
 
     @Test
-    void findByBookingStatus() {
+    void testToFindAllBookingsByBookingStatus() {
 
         //given
         int trainNo = 1;
@@ -124,8 +162,19 @@ class BookingRepositoryTest {
     }
 
     @Test
-    @Disabled
-    void updateBooking() {
+    void testIfBookingDetailsGetUpdated() throws InterruptedException {
+
+        //given
+        int pnrNo = booking2.getPnr();
+
+        //when
+        bookingRepo.updateBooking(pnrNo,1,BookingStatus.CONFIRMED);
+        entityManager.clear();
+        Booking booking = bookingRepo.findById(pnrNo).orElse(new Booking());
+
+        //then
+        assertThat(booking.getSeatNo() == 1 &&
+                booking.getBookingStatus().equals(BookingStatus.CONFIRMED)).isTrue();
     }
 
 }
