@@ -72,6 +72,7 @@ public class BookingService {
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
 
+
     public BookingResponse book(BookingRequest request) throws InvalidBookingException, BookingNotOpenException, TimeTableNotFoundException {
 
         logger.info(INSIDE_BOOKING_SERVICE);
@@ -413,9 +414,9 @@ public class BookingService {
         return allStations;
     }
 
-    private Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
+     protected Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
 
-            boolean isRouteValid = false;
+            boolean isRouteValid = Boolean.parseBoolean(null);
 
             Optional<Route> routeOpt = routeInfoService.getByRouteId(trn.getRouteId());
 
@@ -435,7 +436,11 @@ public class BookingService {
 
             }
 
-           return Utils.toOptional(isRouteValid);
+        /*if(isRouteValid == false)
+            return Optional.empty();*/
+
+
+        return Optional.ofNullable(isRouteValid);
     }
 
     private List<Integer> getOverlappingRoutes(String src, String dest){

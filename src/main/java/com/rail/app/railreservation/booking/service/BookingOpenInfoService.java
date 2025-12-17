@@ -33,8 +33,13 @@ public class BookingOpenInfoService {
 
     public Optional<Boolean> isBookingOpen(BookingRequest request){
 
-        return bookingOpenRepo.isBookingOpen(request.getTrainNo(),Utils.toLocalDate(request.getStartDt()),
+        Optional<Boolean> isBookingOpenAsOptional = bookingOpenRepo.isBookingOpen(request.getTrainNo(),Utils.toLocalDate(request.getStartDt()),
                 Utils.toLocalDate(request.getEndDt()));
+
+        if(isBookingOpenAsOptional.get() == true)
+            return isBookingOpenAsOptional;
+
+        return Optional.empty();
     }
 
     public List<BookingOpen> getBookingOpenInfoByTrainNo(int trainNo){
