@@ -72,49 +72,6 @@ public class BookingService {
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
 
-    public BookingOpenResponse openBooking(int trainNo,BookingOpenRequest request)
-                                           throws BookingCannotOpenException{
-
-        logger.info(INSIDE_BOOKING_SERVICE);
-
-        LocalDate startDt = Utils.toLocalDate(request.getStartDt());
-
-        if(startDt.isBefore(LocalDate.now()))
-            throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
-
-        trainInfoService.getByTrainNo(trainNo)
-                .orElseThrow(() -> new BookingCannotOpenException("Not Allowed To Open Booking On Non Existent Train"));
-
-        logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
-                trainNo,request.getStartDt(),request.getEndDt());
-
-
-        bookingOpenInfoService.addBookingOpenInfo(trainNo,request);
-
-        seatInfoTrackerService.initSeatInfoTracker(trainNo,request);
-
-        logger.info("Booking Opened For TrainNo:{}, StartDate:{}, EndDate:{}",
-                trainNo,request.getStartDt(),request.getEndDt());
-
-        return new BookingOpenResponse(trainNo,request.getStartDt(),
-                                       request.getEndDt(),true);
-    }
-
-    public BookingOpenInfo getBookingOpenInfo(int trainNo){
-
-        List<BookingOpen> bookingOpens;
-        bookingOpens = bookingOpenInfoService.getBookingOpenInfoByTrainNo(trainNo);
-
-        List<BookingOpenDate> bookingOpenDates = new ArrayList<>();
-
-        for(BookingOpen bookingOpen:bookingOpens){
-            bookingOpenDates.add(mapper.map(bookingOpen,BookingOpenDate.class));
-        }
-
-        return new BookingOpenInfo(trainNo,bookingOpenDates);
-    }
-
-
     public BookingResponse book(BookingRequest request) throws InvalidBookingException, BookingNotOpenException, TimeTableNotFoundException {
 
         logger.info(INSIDE_BOOKING_SERVICE);
@@ -230,6 +187,93 @@ public class BookingService {
 
     }
 
+    public String cancelBooking(int pnrNo) throws PnrNoIncorrectException{
+
+        Booking bookingToCancel = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
+                .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
+
+        logger.info("Processing Request To Cancel Booking For PnrNo:{}",pnrNo);
+
+        if(bookingToCancel.getBookingStatus().equals(BookingStatus.CONFIRMED)){
+
+            int seatNo = bookingToCancel.getSeatNo();
+
+            List<Booking> waitingList = bookingInfoTrackerService.getWaitingList(bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
+                    bookingToCancel.getStartDt(),bookingToCancel.getEndDt()).orElse(new ArrayList<>());
+
+            waitingList = waitingList.stream().sorted((b1,b2)->Integer.compare(b1.getPnr(), b2.getPnr())).toList();
+
+            List<Booking> allBookings = bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel).orElse(new ArrayList<>());
+
+            Booking bookingToConfirm = null;
+
+            for(Booking bookingWithStatusWait:waitingList){
+
+                if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings) || allBookings.size() == 1){
+                    bookingToConfirm = bookingWithStatusWait;
+                    break;
+                }
+            }
+
+            if(bookingToConfirm != null){
+
+                bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
+                logger.info("Changed Booking Status For PnrNo:{},From Waiting To Confirmed",bookingToConfirm.getPnr());
+            }
+
+
+        }
+
+        bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
+
+        logger.info("Booking Cancelled For PnrNo:{}",pnrNo);
+
+        return "Deleted Booking For PnrNo:"+pnrNo;
+    }
+
+    public BookingOpenResponse openBooking(int trainNo,BookingOpenRequest request)
+            throws BookingCannotOpenException{
+
+        logger.info(INSIDE_BOOKING_SERVICE);
+
+        LocalDate startDt = Utils.toLocalDate(request.getStartDt());
+
+        if(startDt.isBefore(LocalDate.now()))
+            throw new BookingCannotOpenException("Booking Open Date Cannot Be In Past.");
+
+        trainInfoService.getByTrainNo(trainNo)
+                .orElseThrow(() -> new BookingCannotOpenException("Not Allowed To Open Booking On Non Existent Train"));
+
+        logger.info("Processing To Open Booking For TrainNo:{}, StartDate:{}, EndDate{}",
+                trainNo,request.getStartDt(),request.getEndDt());
+
+
+        bookingOpenInfoService.addBookingOpenInfo(trainNo,request);
+
+        seatInfoTrackerService.initSeatInfoTracker(trainNo,request);
+
+        logger.info("Booking Opened For TrainNo:{}, StartDate:{}, EndDate:{}",
+                trainNo,request.getStartDt(),request.getEndDt());
+
+        return new BookingOpenResponse(trainNo,request.getStartDt(),
+                request.getEndDt(),true);
+    }
+
+    public BookingOpenInfo getBookingOpenInfo(int trainNo){
+
+        List<BookingOpen> bookingOpens;
+        bookingOpens = bookingOpenInfoService.getBookingOpenInfoByTrainNo(trainNo);
+
+        List<BookingOpenDate> bookingOpenDates = new ArrayList<>();
+
+        for(BookingOpen bookingOpen:bookingOpens){
+            bookingOpenDates.add(mapper.map(bookingOpen,BookingOpenDate.class));
+        }
+
+        return new BookingOpenInfo(trainNo,bookingOpenDates);
+    }
+
+
     public Set<Integer> getAvailableSeatNumbers(BookingRequest request){
 
 
@@ -309,8 +353,7 @@ public class BookingService {
 
                     src = bkng.getStartFrom();
                     dest = bkng.getEndAt();
-                    routeID = getRouteId(src,dest).get();
-
+                    routeID = routeInfoService.getBySrcAndDest(src,dest).get();
                     isOverlapp = getOverlappingRoutes(request.getFrom(),
                                                       request.getTo()).contains(routeID);
 
@@ -409,63 +452,6 @@ public class BookingService {
 
         return routes.stream().map(r->r.getRouteID()).collect(Collectors.toList());
 
-    }
-
-    private Optional<Integer> getRouteId(String src, String dest){
-
-        List<Route> routes = routeInfoService.containsSrcOrDest(src,dest);
-
-        return routes.stream().filter(r->{   boolean isTrue = false;
-            if(r.getStations().get(0).equals(src)){
-                if(r.getStations().get(r.getStations().size()-1).equals(dest))
-                    isTrue = true;
-            }
-            return isTrue;
-        }).map(r->r.getRouteID()).findFirst();
-    }
-
-    public String cancelBooking(int pnrNo) throws PnrNoIncorrectException{
-
-        Booking bookingToCancel = bookingInfoTrackerService.getBookingByPnrNo(pnrNo)
-                                    .orElseThrow(()->new PnrNoIncorrectException("Check PNR No:"+pnrNo+",As booking Could Not Be Found"));
-
-        logger.info("Processing Request To Cancel Booking For PnrNo:{}",pnrNo);
-
-        if(bookingToCancel.getBookingStatus().equals(BookingStatus.CONFIRMED)){
-
-            int seatNo = bookingToCancel.getSeatNo();
-
-            List<Booking> waitingList = bookingInfoTrackerService.getWaitingList(bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
-                                                                                bookingToCancel.getStartDt(),bookingToCancel.getEndDt()).orElse(new ArrayList<>());
-
-            waitingList = waitingList.stream().sorted((b1,b2)->Integer.compare(b1.getPnr(), b2.getPnr())).toList();
-
-            List<Booking> allBookings = bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel).orElse(new ArrayList<>());
-
-            Booking bookingToConfirm = null;
-
-            for(Booking bookingWithStatusWait:waitingList){
-
-                    if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings) || allBookings.size() == 1){
-                        bookingToConfirm = bookingWithStatusWait;
-                        break;
-                    }
-            }
-
-            if(bookingToConfirm != null){
-
-                bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
-                logger.info("Changed Booking Status For PnrNo:{},From Waiting To Confirmed",bookingToConfirm.getPnr());
-            }
-
-
-        }
-
-        bookingInfoTrackerService.deleteBookingByPnrNo(pnrNo);
-
-        logger.info("Booking Cancelled For PnrNo:{}",pnrNo);
-
-        return "Deleted Booking For PnrNo:"+pnrNo;
     }
 
 }
