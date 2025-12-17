@@ -36,6 +36,7 @@ class BookingRepositoryTest {
 
     private Booking booking1;
     private Booking booking2;
+    private Booking booking3;
 
     @BeforeEach
     void beforeEach() {
@@ -59,16 +60,58 @@ class BookingRepositoryTest {
 
         bookingRepo.save(booking2);
 
+        booking3 = new Booking("ThirdName",24,"M",1,startDate,endDate,
+                "stn5","stn7",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.CONFIRMED, Timestamp.valueOf(LocalDateTime.now()),1);
+
+        bookingRepo.save(booking3);
+
     }
 
     @Test
-    @Disabled
     void findLastBooking() {
+
+        //given
+        String name="ThirdName";
+        int age=24;
+        String sex="M";
+        int trainNo = 1;
+        String startFrom = "stn5";
+        String endAt = "stn7";
+        LocalDate doj = startDate.plusDays(1);
+        JourneyClass jrnyClass = JourneyClass.AC1;
+        BookingStatus bkngStatus = BookingStatus.CONFIRMED;
+
+        //when
+        Booking b = bookingRepo.findLastBooking(name,age,sex,trainNo,
+                startFrom,endAt,doj,jrnyClass,bkngStatus);
+
+        //then
+        assertThat(b.getName()).isEqualTo("ThirdName");
     }
 
     @Test
-    @Disabled
     void findFirstBooking() {
+
+        //given
+        String name="FirstName";
+        int age=24;
+        String sex="M";
+        int trainNo = 1;
+        String startFrom = "stn1";
+        String endAt = "stn5";
+        LocalDate doj = startDate.plusDays(1);
+        JourneyClass jrnyClass = JourneyClass.AC1;
+        BookingStatus bkngStatus = BookingStatus.CONFIRMED;
+
+        //when
+        Booking b = bookingRepo.findFirstBooking(name,age,sex,trainNo,
+                startFrom,endAt,doj,jrnyClass,bkngStatus);
+
+        //then
+        assertThat(b.getName()).isEqualTo("FirstName");
+
+
     }
 
     @Test
@@ -93,7 +136,7 @@ class BookingRepositoryTest {
 
 
         //then
-        assertThat(bookings.size()).isEqualTo(1);
+        assertThat(bookings.size()).isEqualTo(2);
 
         BookingStatus bkngStatus = bookings.getFirst().getBookingStatus();
 
@@ -110,12 +153,6 @@ class BookingRepositoryTest {
         LocalDate endDt = endDate;
         int seatNo = 1;
 
-        Booking booking3 = new Booking("FirstName",24,"M",1,startDate,endDate,
-                "stn5","stn7",startDate.plusDays(1),JourneyClass.AC1,
-                BookingStatus.CONFIRMED, Timestamp.valueOf(LocalDateTime.now()),1);
-
-        bookingRepo.save(booking3);
-
         //when
         int count = bookingRepo.findCountOfSeatNumber(trainNo,jrnyClass,strtDt,endDt,seatNo);
 
@@ -125,13 +162,6 @@ class BookingRepositoryTest {
 
     @Test
     void testToFindAllBookingsWhichShareSameSeatNo() {
-
-        //given
-        Booking booking3 = new Booking("FirstName",24,"M",1,startDate,endDate,
-                "stn5","stn7",startDate.plusDays(1),JourneyClass.AC1,
-                BookingStatus.CONFIRMED, Timestamp.valueOf(LocalDateTime.now()),1);
-
-        bookingRepo.save(booking3);
 
         //when
         List<Booking> bookings = bookingRepo.findBySeatNo(1,1,
@@ -150,10 +180,12 @@ class BookingRepositoryTest {
     void testToFindBookingtatusGivenPnrNo() {
 
         //given
-        int pnrNo = 1;
+        List<Booking> bookings = bookingRepo.findBySeatNo(1,1,JourneyClass.AC1,startDate,endDate);
+        bookings = bookings.stream().sorted((b1,b2)->Integer.compare(b1.getPnr(),b2.getPnr())).toList();
+        int pnrNo = bookings.getFirst().getPnr();
 
         //when
-        BookingStatus bookingStatus = bookingRepo.findBookingstatus(pnrNo).get();
+        BookingStatus bookingStatus = bookingRepo.findBookingstatus(pnrNo).orElse(null);
 
         //then
         assertThat(bookingStatus).isEqualTo(BookingStatus.CONFIRMED);
@@ -174,7 +206,7 @@ class BookingRepositoryTest {
                         jrnyClass,startDate,endDate);
 
         //then
-        assertThat(bookings.isPresent() && bookings.get().size() == 1 &&
+        assertThat(bookings.isPresent() && bookings.get().size() == 2 &&
                 bookings.get().getFirst().getBookingStatus().equals(BookingStatus.CONFIRMED)).isTrue();
 
     }
