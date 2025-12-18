@@ -164,6 +164,10 @@ class BookingServiceTest {
     }
 
     @Test
+    void testWhenTrainArrivalDateIsNotEqualToJourneyDate(){
+
+    }
+    @Test
     void cancelBooking() {
     }
 
