@@ -5,6 +5,7 @@ import com.rail.app.railreservation.booking.dto.Passenger;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.booking.repository.BookingRepository;
+import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.route.service.RouteInfoService;
 import com.rail.app.railreservation.trainmanagement.entity.Train;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
@@ -56,9 +57,12 @@ class BookingServiceTest {
     private LocalDate endDate;
     private DateTimeFormatter pattern;
 
+    private BookingRequest bookingRequest;
+
 
     @BeforeEach
     void setUp() {
+
         pattern = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         startDate = LocalDate.now();
         endDate = startDate.plusDays(2);
@@ -66,6 +70,20 @@ class BookingServiceTest {
         bookingServiceUnderTest = new BookingServiceForTest(trainInfoService,routeInfoService,
                 seatInfoTrackerService,bookingInfoTrackerService,bookingOpenInfoService,
                 mapper,totalNoOfSeats);
+
+        String from = "stn1";
+        String to = "stn5";
+        String doj = startDate.plusDays(1).format(pattern);
+
+        List<Passenger> passengers= new ArrayList<>();
+
+        passengers.add(new Passenger("First Passenger",24,"M"));
+        passengers.add(new Passenger("Second Passenger",25,"F"));
+        passengers.add(new Passenger("Third Passenger",26,"F"));
+
+         bookingRequest = new BookingRequest(1,"TRAIN1",startDate.format(pattern),
+                endDate.format(pattern),from,to, JourneyClass.AC1,doj,passengers);
+
     }
 
     @AfterEach
@@ -79,21 +97,6 @@ class BookingServiceTest {
     @Test
     void testInvalidBookingExceptionDueToNonExistentTrain() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
-        //given
-
-        String from = "stn1";
-        String to = "stn5";
-        String doj = startDate.plusDays(1).format(pattern);
-
-        List<Passenger> passengers= new ArrayList<>();
-
-        passengers.add(new Passenger("First Passenger",24,"M"));
-        passengers.add(new Passenger("Second Passenger",25,"F"));
-        passengers.add(new Passenger("Third Passenger",26,"F"));
-
-        BookingRequest bookingRequest = new BookingRequest(1,"TRAIN1",startDate.format(pattern),
-                endDate.format(pattern),from,to, JourneyClass.AC1,doj,passengers);
-
 
         //when
         when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.empty());
@@ -101,32 +104,29 @@ class BookingServiceTest {
         //then
         assertThrows(InvalidBookingException.class,()-> bookingServiceUnderTest.book(bookingRequest));
 
-
     }
 
     @Test
     void testInvalidBookingExceptionDueToIncorrectTrainNo() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
+
         //given
 
-        String from = "stn1";
-        String to = "stn5";
-        String doj = startDate.plusDays(1).format(pattern);
+        Route route = new Route();
+        route.setRouteID(1);
+        route.setStations(List.of("stn1","stn2","stn3","stn4","stn5"));
 
-        List<Passenger> passengers= new ArrayList<>();
+        Train train = new Train();
+        train.setRouteId(1);
 
-        passengers.add(new Passenger("First Passenger",24,"M"));
-        passengers.add(new Passenger("Second Passenger",25,"F"));
-        passengers.add(new Passenger("Third Passenger",26,"F"));
-
-        BookingRequest bookingRequest = new BookingRequest(1,"TRAIN1",startDate.format(pattern),
-                endDate.format(pattern),from,to, JourneyClass.AC1,doj,passengers);
 
         //when
-        when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(new Train()));
+        when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(train));
 
-        when(bookingServiceUnderTest.isValidRoute(bookingRequest.getFrom(),bookingRequest.getTo(),new Train())).
-                thenReturn(Optional.empty());
+        when(routeInfoService.getByRouteId(1)).thenReturn(Optional.of(route));
+
+        when(routeInfoService.checkIfRouteContains(bookingRequest.getFrom(),
+                bookingRequest.getTo(),route)).thenReturn(false);
 
         //then
         assertThrows(InvalidBookingException.class,()-> bookingServiceUnderTest.book(bookingRequest));
@@ -140,24 +140,21 @@ class BookingServiceTest {
 
         //given
 
-        String from = "stn1";
-        String to = "stn5";
-        String doj = startDate.plusDays(1).format(pattern);
+        Route route = new Route();
+        route.setRouteID(1);
+        route.setStations(List.of("stn1","stn2","stn3","stn4","stn5"));
 
-        List<Passenger> passengers= new ArrayList<>();
+        Train train = new Train();
+        train.setRouteId(1);
 
-        passengers.add(new Passenger("First Passenger",24,"M"));
-        passengers.add(new Passenger("Second Passenger",25,"F"));
-        passengers.add(new Passenger("Third Passenger",26,"F"));
-
-        BookingRequest bookingRequest = new BookingRequest(1,"TRAIN1",startDate.format(pattern),
-                endDate.format(pattern),from,to, JourneyClass.AC1,doj,passengers);
 
         //when
-        when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(new Train()));
+        when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(train));
 
-        when(bookingServiceUnderTest.isValidRoute(bookingRequest.getFrom(),bookingRequest.getTo(),new Train())).
-                thenReturn(Optional.of(true));
+        when(routeInfoService.getByRouteId(1)).thenReturn(Optional.of(route));
+
+        when(routeInfoService.checkIfRouteContains(bookingRequest.getFrom(),
+                bookingRequest.getTo(),route)).thenReturn(true);
 
         when(bookingOpenInfoService.isBookingOpen(bookingRequest)).thenReturn(Optional.empty());
 

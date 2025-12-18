@@ -416,7 +416,7 @@ public class BookingService {
 
      protected Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
 
-            boolean isRouteValid = Boolean.parseBoolean(null);
+            boolean isRouteValid = false;
 
             Optional<Route> routeOpt = routeInfoService.getByRouteId(trn.getRouteId());
 
@@ -436,11 +436,11 @@ public class BookingService {
 
             }
 
-        /*if(isRouteValid == false)
-            return Optional.empty();*/
+        if(isRouteValid == false)
+            return Optional.empty();
 
 
-        return Optional.ofNullable(isRouteValid);
+        return Optional.of(isRouteValid);
     }
 
     private List<Integer> getOverlappingRoutes(String src, String dest){
