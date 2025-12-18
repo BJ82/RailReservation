@@ -13,6 +13,7 @@ import com.rail.app.railreservation.route.entity.Route;
 import com.rail.app.railreservation.route.service.RouteInfoService;
 import com.rail.app.railreservation.trainmanagement.entity.Train;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
+import com.rail.app.railreservation.trainmanagement.service.TrainArrivalDateService;
 import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
 import com.rail.app.railreservation.util.Utils;
 import org.apache.logging.log4j.LogManager;
@@ -51,6 +52,8 @@ public class BookingService {
 
     private final BookingOpenInfoService bookingOpenInfoService;
 
+    private final TrainArrivalDateService trainArrivalDateService;
+
     private final ModelMapper mapper;
 
     private final int totalNoOfSeats;
@@ -58,14 +61,15 @@ public class BookingService {
     public BookingService(TrainInfoService trainInfoService, RouteInfoService routeInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
                           BookingInfoTrackerService bookingInfoTrackerService,
-                          BookingOpenInfoService bookingOpenInfoService,
-                          ModelMapper mapper,@Value("${total.no.of.seats}") int totalNoOfSeats) {
+                          BookingOpenInfoService bookingOpenInfoService, TrainArrivalDateService trainArrivalDateService,
+                          ModelMapper mapper, @Value("${total.no.of.seats}") int totalNoOfSeats) {
 
         this.trainInfoService = trainInfoService;
         this.routeInfoService = routeInfoService;
         this.seatInfoTrackerService = seatInfoTrackerService;
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingOpenInfoService = bookingOpenInfoService;
+        this.trainArrivalDateService = trainArrivalDateService;
         this.mapper = mapper;
         this.totalNoOfSeats = totalNoOfSeats;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
@@ -94,7 +98,10 @@ public class BookingService {
         String startFrom = request.getFrom();
 
         LocalDate trainStartDateFrmSource = Utils.toLocalDate(request.getStartDt());
-        LocalDate dateOfArrival =  Utils.getArrivalDate(request.getTrainNo(),startFrom,trainStartDateFrmSource);
+
+        LocalDate dateOfArrival =  trainArrivalDateService.getArrivalDate(request.getTrainNo(),
+                    startFrom,trainStartDateFrmSource);
+
         LocalDate dateOfJourney = Utils.toLocalDate(request.getDoj());
 
         if(!dateOfArrival.equals(dateOfJourney))
