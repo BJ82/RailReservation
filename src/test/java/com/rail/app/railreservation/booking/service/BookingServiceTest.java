@@ -299,11 +299,15 @@ class BookingServiceTest {
     }
 
     @Test
-    void testCancelBooking() {
+    void testWaitingTicketCancellation() {
     }
 
     @Test
-    void openBooking() {
+    void testConfirmedTicketCancellation() {
+    }
+
+    @Test
+    void testOpenBooking() {
     }
 
     @Test
