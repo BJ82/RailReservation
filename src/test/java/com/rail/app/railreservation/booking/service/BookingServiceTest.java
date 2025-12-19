@@ -25,6 +25,7 @@ import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
 import com.rail.app.railreservation.util.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -250,8 +251,51 @@ class BookingServiceTest {
     }
 
     @Test
-    void testBookingWaiting(){
+    void testBookingWaiting() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
+        //given
+
+        when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(train));
+
+        when(routeInfoService.getByRouteId(1)).thenReturn(Optional.of(route));
+
+        when(routeInfoService.checkIfRouteContains(bookingRequest.getFrom(),
+                bookingRequest.getTo(),route)).thenReturn(true);
+
+        when(bookingOpenInfoService.isBookingOpen(bookingRequest)).thenReturn(Optional.of(true));
+
+        when(trainArrivalDateService.getArrivalDate(bookingRequest.getTrainNo(),bookingRequest.getFrom(),
+                Utils.toLocalDate(bookingRequest.getStartDt())))
+                .thenReturn(startDate.plusDays(1));
+
+
+
+        when(seatNoService.getAvailableSeatNumbers(bookingRequest)).thenReturn(Set.of(3,4));
+
+        when(seatInfoTrackerService.getCountOfConfirmedSeats(bookingRequest)).thenReturn(2);
+
+        when(bookingInfoTrackerService.trackBooking(any(Passenger.class),any(BookingRequest.class),
+                any(BookingStatus.class),anyInt())).thenReturn(2);
+
+        doNothing().when(seatInfoTrackerService)
+                .trackLastSeatNo(any(BookingRequest.class),anyInt());
+
+        doNothing().when(seatInfoTrackerService)
+                .trackCountOfSeats(bookingRequest,4);
+
+        BookingResponse bookingResponse = bookingServiceUnderTest.book(bookingRequest);
+
+        //then
+
+        for(BookedPassenger passenger:bookingResponse.getPassengerList()){
+
+            if(passenger.getStatus().equals(BookingStatus.CONFIRMED))
+                continue;
+
+            assert(passenger.getStatus().equals(BookingStatus.WAITING));
+            assert(passenger.getSeatNo() == 0);
+
+        }
     }
 
     @Test
