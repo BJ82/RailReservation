@@ -12,11 +12,11 @@ public class BookingServiceForTest extends BookingService {
                                  SeatInfoTrackerService seatInfoTrackerService,
                                  BookingInfoTrackerService bookingInfoTrackerService,
                                  BookingOpenInfoService bookingOpenInfoService,
-                                 TrainArrivalDateService trainArrivalDateService,
-                                 ModelMapper mapper, @Value("${total.no.of.seats}") int totalNoOfSeats) {
+                                 TrainArrivalDateService trainArrivalDateService,SeatNoService seatNoService,
+                                 ModelMapper mapper) {
 
         super(trainInfoService,routeInfoService,seatInfoTrackerService,bookingInfoTrackerService,
-                bookingOpenInfoService,trainArrivalDateService,mapper,totalNoOfSeats);
+                bookingOpenInfoService,trainArrivalDateService,seatNoService,mapper);
 
     }
 }

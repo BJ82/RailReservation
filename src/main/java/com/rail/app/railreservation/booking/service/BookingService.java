@@ -19,15 +19,12 @@ import com.rail.app.railreservation.util.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
@@ -54,15 +51,14 @@ public class BookingService {
 
     private final TrainArrivalDateService trainArrivalDateService;
 
+    private final SeatNoService seatNoService;
     private final ModelMapper mapper;
-
-    private final int totalNoOfSeats;
 
     public BookingService(TrainInfoService trainInfoService, RouteInfoService routeInfoService,
                           SeatInfoTrackerService seatInfoTrackerService,
                           BookingInfoTrackerService bookingInfoTrackerService,
-                          BookingOpenInfoService bookingOpenInfoService, TrainArrivalDateService trainArrivalDateService,
-                          ModelMapper mapper, @Value("${total.no.of.seats}") int totalNoOfSeats) {
+                          BookingOpenInfoService bookingOpenInfoService, TrainArrivalDateService trainArrivalDateService, SeatNoService seatNoService,
+                          ModelMapper mapper) {
 
         this.trainInfoService = trainInfoService;
         this.routeInfoService = routeInfoService;
@@ -70,8 +66,8 @@ public class BookingService {
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingOpenInfoService = bookingOpenInfoService;
         this.trainArrivalDateService = trainArrivalDateService;
+        this.seatNoService = seatNoService;
         this.mapper = mapper;
-        this.totalNoOfSeats = totalNoOfSeats;
         this.seatNumbers = Collections.synchronizedSet(new LinkedHashSet<>());
         this.pnrs = Collections.synchronizedList(new ArrayList<>());
     }
@@ -116,7 +112,7 @@ public class BookingService {
 
 
         seatNumbers.clear();
-        seatNumbers.addAll(getAvailableSeatNumbers(request));
+        seatNumbers.addAll(seatNoService.getAvailableSeatNumbers(request));
 
         pnrs.clear();
 
@@ -281,146 +277,6 @@ public class BookingService {
         return new BookingOpenInfo(trainNo,bookingOpenDates);
     }
 
-
-    public Set<Integer> getAvailableSeatNumbers(BookingRequest request){
-
-
-        Set<Integer> seatNums;
-        seatNums = Collections.synchronizedSet(new LinkedHashSet<>());
-
-        AtomicInteger lstAllotedSeatNum;
-        lstAllotedSeatNum = new AtomicInteger(seatInfoTrackerService.getLastAllocatedSeatNo(request));
-
-
-        int seatsAvailable = totalNoOfSeats - seatInfoTrackerService.getLastAllocatedSeatNo(request);
-
-        for(int i=1;i<=seatsAvailable;i++){
-
-            seatNums.add(lstAllotedSeatNum.addAndGet(1));
-        }
-
-
-        //Obtain Seat Nos which would be free
-        //Before Journey Starts
-
-        seatNums.addAll(getSeatNosBefore(request));
-
-
-        //Obtain Seat Nos which would be used
-        //After Journey Ends
-
-        seatNums.addAll(getSeatNosAfter(request));
-
-
-        return seatNums;
-    }
-
-
-    private Set<Integer> getSeatNosBefore(BookingRequest request){
-
-        String src;
-        String dest;
-
-        Set<Integer> seatNums = new LinkedHashSet<>();
-
-        List<String> allStations = getAllStations(request.getTrainNo());
-
-        int before = allStations.indexOf(request.getFrom());
-
-        for(int i=0;i<=before;i++){
-
-            src = allStations.get(i);
-
-            for(int j=i+1;j<=before;j++){
-
-                dest = allStations.get(j);
-
-                seatNums.addAll(seatInfoTrackerService.getSeatNumbers(src,dest,request));
-
-            }
-        }
-
-        filterSeatNos(seatNums,request);
-        return seatNums;
-    }
-
-    private void filterSeatNos(Set<Integer> seatNums,BookingRequest request){
-
-        Set<Integer> seatNosToRetain = new LinkedHashSet<>(seatNums);
-
-        for(Integer num:seatNums){
-
-            List<Booking> bookings = bookingInfoTrackerService.getBookingBySeatNumber(num,request);
-
-               String src;
-               String dest;
-               Integer routeID;
-               boolean isOverlapp = false;
-
-                for(Booking bkng:bookings){
-
-                    src = bkng.getStartFrom();
-                    dest = bkng.getEndAt();
-                    routeID = routeInfoService.getBySrcAndDest(src,dest).get();
-                    isOverlapp = getOverlappingRoutes(request.getFrom(),
-                                                      request.getTo()).contains(routeID);
-
-                    if(isOverlapp)
-                        seatNosToRetain.remove(num);
-                }
-
-
-        }
-
-        seatNums.clear();
-        seatNums.addAll(seatNosToRetain);
-    }
-
-    private Set<Integer> getSeatNosAfter(BookingRequest request){
-
-        String src;
-        String dest;
-
-        Set<Integer> seatNums = new LinkedHashSet<>();
-
-        List<String> allStations = getAllStations(request.getTrainNo());
-
-        int after = allStations.indexOf(request.getTo());
-
-        for (int i = after; i < allStations.size(); i++) {
-
-            src = allStations.get(i);
-
-            for (int j = i + 1; j < allStations.size(); j++) {
-
-                dest = allStations.get(j);
-
-                seatNums.addAll(seatInfoTrackerService.getSeatNumbers(src,dest,request));
-            }
-        }
-
-        filterSeatNos(seatNums,request);
-        return seatNums;
-    }
-
-    private List<String> getAllStations(int trainNo){
-
-        List<String> allStations = new ArrayList<>();
-
-        Optional<Train> trainOpt = trainInfoService.getByTrainNo(trainNo);
-
-        if(trainOpt.isPresent()){
-
-            Train train = trainOpt.get();
-            int routeID = train.getRouteId();
-
-            Route r = routeInfoService.getByRouteId(routeID).get();
-            allStations.addAll(r.getStations());
-        }
-
-        return allStations;
-    }
-
      protected Optional<Boolean> isValidRoute(String jurnyStartStn,String jurnyEndStn,Train trn){
 
             boolean isRouteValid = false;
@@ -450,20 +306,5 @@ public class BookingService {
         return Optional.of(isRouteValid);
     }
 
-    private List<Integer> getOverlappingRoutes(String src, String dest){
-
-        List<Route> routes = routeInfoService.containsSrcOrDest(src,dest);
-
-        List<Route> overlappingRoutes = new ArrayList<>(routes);
-
-        for(Route route:overlappingRoutes){
-
-            if(route.getStations().getLast().equals(src) || route.getStations().getFirst().equals(dest))
-                routes.remove(route);
-        }
-
-        return routes.stream().map(r->r.getRouteID()).collect(Collectors.toList());
-
-    }
 
 }

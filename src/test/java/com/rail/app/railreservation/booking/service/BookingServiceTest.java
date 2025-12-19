@@ -1,7 +1,10 @@
 package com.rail.app.railreservation.booking.service;
 
+import com.rail.app.railreservation.booking.dto.BookedPassenger;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
+import com.rail.app.railreservation.booking.dto.BookingResponse;
 import com.rail.app.railreservation.booking.dto.Passenger;
+import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
@@ -35,8 +38,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,11 +63,8 @@ class BookingServiceTest {
 
     @Mock private TrainArrivalDateService trainArrivalDateService;
 
+    @Mock private SeatNoService seatNoService;
     private ModelMapper mapper;
-
-    @Value("${total.no.of.seats}")
-    private int totalNoOfSeats;
-
 
     private LocalDate startDate;
     private LocalDate endDate;
@@ -83,7 +87,7 @@ class BookingServiceTest {
 
         bookingServiceUnderTest = new BookingServiceForTest(trainInfoService,routeInfoService,
                 seatInfoTrackerService,bookingInfoTrackerService,bookingOpenInfoService,trainArrivalDateService,
-                mapper,totalNoOfSeats);
+                seatNoService,mapper);
 
 
 
@@ -161,16 +165,6 @@ class BookingServiceTest {
     void testBookingNotOpenException() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
 
-        //given
-
-        Route route = new Route();
-        route.setRouteID(1);
-        route.setStations(List.of("stn1","stn2","stn3","stn4","stn5"));
-
-        Train train = new Train();
-        train.setRouteId(1);
-
-
         //when
         when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(train));
 
@@ -210,7 +204,58 @@ class BookingServiceTest {
     }
 
     @Test
-    void cancelBooking() {
+    void testBookingConfirmed() throws TimeTableNotFoundException, InvalidBookingException, BookingNotOpenException {
+
+        //given
+
+        when(trainInfoService.getByTrainNo(1)).thenReturn(Optional.of(train));
+
+        when(routeInfoService.getByRouteId(1)).thenReturn(Optional.of(route));
+
+        when(routeInfoService.checkIfRouteContains(bookingRequest.getFrom(),
+                bookingRequest.getTo(),route)).thenReturn(true);
+
+        when(bookingOpenInfoService.isBookingOpen(bookingRequest)).thenReturn(Optional.of(true));
+
+        when(trainArrivalDateService.getArrivalDate(bookingRequest.getTrainNo(),bookingRequest.getFrom(),
+                Utils.toLocalDate(bookingRequest.getStartDt())))
+                .thenReturn(startDate.plusDays(1));
+
+
+
+        when(seatNoService.getAvailableSeatNumbers(bookingRequest)).thenReturn(Set.of(2,3,4));
+
+        when(seatInfoTrackerService.getCountOfConfirmedSeats(bookingRequest)).thenReturn(1);
+
+        when(bookingInfoTrackerService.trackBooking(any(Passenger.class),any(BookingRequest.class),
+                any(BookingStatus.class),anyInt())).thenReturn(2);
+
+        doNothing().when(seatInfoTrackerService)
+                .trackLastSeatNo(any(BookingRequest.class),anyInt());
+
+        doNothing().when(seatInfoTrackerService)
+                .trackCountOfSeats(bookingRequest,4);
+
+        BookingResponse bookingResponse = bookingServiceUnderTest.book(bookingRequest);
+
+        //then
+
+        for(BookedPassenger passenger:bookingResponse.getPassengerList()){
+
+            assert(passenger.getStatus().equals(BookingStatus.CONFIRMED));
+            assert(passenger.getSeatNo() > 0);
+        }
+
+
+    }
+
+    @Test
+    void testBookingWaiting(){
+
+    }
+
+    @Test
+    void testCancelBooking() {
     }
 
     @Test
