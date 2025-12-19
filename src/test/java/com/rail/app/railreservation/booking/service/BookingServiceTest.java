@@ -4,36 +4,29 @@ import com.rail.app.railreservation.booking.dto.BookedPassenger;
 import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.dto.BookingResponse;
 import com.rail.app.railreservation.booking.dto.Passenger;
+import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
-import com.rail.app.railreservation.booking.repository.BookingOpenRepository;
-import com.rail.app.railreservation.booking.repository.BookingRepository;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
 import com.rail.app.railreservation.route.entity.Route;
-import com.rail.app.railreservation.route.repository.RouteRepository;
 import com.rail.app.railreservation.route.service.RouteInfoService;
-import com.rail.app.railreservation.trainmanagement.dto.TimeTableEnquiryResponse;
-import com.rail.app.railreservation.trainmanagement.entity.Timing;
 import com.rail.app.railreservation.trainmanagement.entity.Train;
-import com.rail.app.railreservation.trainmanagement.enums.Day;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
 import com.rail.app.railreservation.trainmanagement.exception.TimeTableNotFoundException;
-import com.rail.app.railreservation.trainmanagement.repository.TrainRepository;
-import com.rail.app.railreservation.trainmanagement.service.TimeTableService;
 import com.rail.app.railreservation.trainmanagement.service.TrainArrivalDateService;
 import com.rail.app.railreservation.trainmanagement.service.TrainInfoService;
 import com.rail.app.railreservation.util.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,11 +34,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
@@ -299,7 +292,29 @@ class BookingServiceTest {
     }
 
     @Test
-    void testWaitingTicketCancellation() {
+    void testWaitingTicketCancellation() throws PnrNoIncorrectException {
+
+        //given
+        Booking bookingToCancel = new Booking("First Passenger",24,"M",1,
+                startDate,endDate,"stn1","stn5",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.WAITING, Timestamp.from(Instant.now()),0);
+
+        int pnrNo = 1;
+
+        when(bookingInfoTrackerService.getBookingByPnrNo(pnrNo)).thenReturn(Optional.of(bookingToCancel));
+
+        doNothing().when(bookingInfoTrackerService)
+                .deleteBookingByPnrNo(pnrNo);
+
+
+        String expected = "Deleted Booking For PnrNo:1";
+
+        //then
+
+        String actual = bookingServiceUnderTest.cancelBooking(pnrNo);
+        assertEquals(expected,actual);
+
+
     }
 
     @Test
