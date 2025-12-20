@@ -209,11 +209,16 @@ public class BookingService {
 
             List<Booking> allBookings = bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel).orElse(new ArrayList<>());
 
+            int pnrToRemove = bookingToCancel.getPnr(); //Exclude bookingToCancel since it will be deleted
+
+            allBookings = allBookings.stream().
+                    filter((booking -> booking.getPnr() != pnrToRemove)).toList();
+
             Booking bookingToConfirm = null;
 
             for(Booking bookingWithStatusWait:waitingList){
 
-                if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings) || allBookings.size() == 1){
+                if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings)){
                     bookingToConfirm = bookingWithStatusWait;
                     break;
                 }

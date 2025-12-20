@@ -21,6 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
@@ -34,11 +35,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+import static org.mockito.AdditionalMatchers.not;
 
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
@@ -318,7 +319,87 @@ class BookingServiceTest {
     }
 
     @Test
-    void testConfirmedTicketCancellation() {
+    void testConfirmedTicketCancellation() throws PnrNoIncorrectException{
+
+        //given
+
+        List<Booking> allBookings = new ArrayList<>();
+
+        Booking bookingToCancel = new Booking("First Passenger",24,"M",1,
+                startDate,endDate,"stn1","stn3",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.CONFIRMED, Timestamp.from(Instant.now()),2);
+        bookingToCancel.setPnr(3);
+
+        allBookings.add(bookingToCancel);
+
+        Booking bookingWithSharedSeatNo = new Booking("Third Passenger",27,"M",1,
+                startDate,endDate,"stn3","stn5",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.CONFIRMED, Timestamp.from(Instant.now()),2);
+        bookingWithSharedSeatNo.setPnr(4);
+
+        allBookings.add(bookingWithSharedSeatNo);
+
+        int seatNo = bookingToCancel.getSeatNo();
+
+        List<Booking> waitingList = createWaitingList();
+
+        Booking booking2 = null;
+        for(Booking b:waitingList){
+
+            if(b.getPnr() == 2){
+                booking2 = b;
+                break;
+            }
+        }
+
+        //then
+        when(bookingInfoTrackerService.getBookingByPnrNo(bookingToCancel.getPnr())).thenReturn(Optional.of(bookingToCancel));
+
+        when(bookingInfoTrackerService.getWaitingList(bookingToCancel.getTrainNo(),bookingToCancel.getJourneyClass(),
+                bookingToCancel.getStartDt(),bookingToCancel.getEndDt())).thenReturn(Optional.of(waitingList));
+
+        when(bookingInfoTrackerService.getBookingBySeatNumber(seatNo,bookingToCancel)).thenReturn(Optional.of(allBookings));
+
+        when(routeInfoService.isRouteCompatible(eq(booking2),any(List.class))).thenReturn(true);
+
+        when(routeInfoService.isRouteCompatible(not(eq(booking2)),any(List.class))).thenReturn(false);
+
+        doNothing().when(bookingInfoTrackerService)
+                .changeBookingToConfirm(booking2.getPnr(),seatNo);
+
+        doNothing().when(bookingInfoTrackerService)
+                .deleteBookingByPnrNo(bookingToCancel.getPnr());
+
+        //when
+        bookingServiceUnderTest.cancelBooking(bookingToCancel.getPnr());
+
+        //verify
+        ArgumentCaptor<Integer> pnrArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(bookingInfoTrackerService).changeBookingToConfirm(pnrArgumentCaptor.capture(),eq(2));
+
+        assertEquals(2,pnrArgumentCaptor.getValue());
+    }
+
+    private List<Booking> createWaitingList(){
+
+        List<Booking> waitingList = new ArrayList<>();
+
+        Booking booking1 =  new Booking("First Passenger",24,"M",1,
+                startDate,endDate,"stn1","stn5",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.WAITING, Timestamp.from(Instant.now()),0);
+
+        booking1.setPnr(1);
+        waitingList.add(booking1);
+
+        Booking booking2 =  new Booking("Second Passenger",24,"F",1,
+                startDate,endDate,"stn1","stn2",startDate.plusDays(1),JourneyClass.AC1,
+                BookingStatus.WAITING, Timestamp.from(Instant.now()),0);
+
+        booking2.setPnr(2);
+        waitingList.add(booking2);
+
+        return waitingList;
+
     }
 
     @Test
