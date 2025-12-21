@@ -1,11 +1,9 @@
 package com.rail.app.railreservation.booking.service;
 
-import com.rail.app.railreservation.booking.dto.BookedPassenger;
-import com.rail.app.railreservation.booking.dto.BookingRequest;
-import com.rail.app.railreservation.booking.dto.BookingResponse;
-import com.rail.app.railreservation.booking.dto.Passenger;
+import com.rail.app.railreservation.booking.dto.*;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
+import com.rail.app.railreservation.booking.exception.BookingCannotOpenException;
 import com.rail.app.railreservation.booking.exception.BookingNotOpenException;
 import com.rail.app.railreservation.booking.exception.InvalidBookingException;
 import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
@@ -117,7 +115,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void testInvalidBookingExceptionDueToNonExistentTrain() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
+    void testInvalidBookingExceptionCausedByNonExistentTrain() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
 
         //when
@@ -129,7 +127,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void testInvalidBookingExceptionDueToIncorrectTrainNo() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
+    void testInvalidBookingExceptionCausedByIncorrectTrainNo() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
 
         //given
@@ -403,15 +401,55 @@ class BookingServiceTest {
     }
 
     @Test
-    void testOpenBooking() {
+    void testBookingOpen() throws BookingCannotOpenException {
+
+        //given
+        int trainNo=1;
+        String startDt = startDate.format(pattern).toString();
+        String endDt = endDate.format(pattern).toString();
+
+        BookingOpenRequest bookingOpenRequest = new BookingOpenRequest(startDt,endDt);
+
+        //then
+        when(trainInfoService.getByTrainNo(trainNo)).thenReturn(Optional.of(new Train()));
+
+        doNothing().when(bookingOpenInfoService)
+                .addBookingOpenInfo(trainNo,bookingOpenRequest);
+
+        doNothing().when(seatInfoTrackerService)
+                        .initSeatInfoTracker(trainNo,bookingOpenRequest);
+
+        //when
+        BookingOpenResponse bookingOpenResponse = bookingServiceUnderTest.openBooking(trainNo,bookingOpenRequest);
+
+
+        //Verify TrainNo
+        ArgumentCaptor<Integer> trainNoCaptor = ArgumentCaptor.forClass(Integer.class);
+
+        verify(bookingOpenInfoService).addBookingOpenInfo(trainNoCaptor.capture(),eq(bookingOpenRequest));
+        assertEquals(trainNo,trainNoCaptor.getValue());
+
+        verify(seatInfoTrackerService).initSeatInfoTracker(trainNoCaptor.capture(),eq(bookingOpenRequest));
+        assertEquals(trainNo,trainNoCaptor.getValue());
+
+
+        //Verify BookingOpenRequest
+        ArgumentCaptor<BookingOpenRequest> bookingOpenRequestCaptor = ArgumentCaptor.forClass(BookingOpenRequest.class);
+
+        verify(bookingOpenInfoService).addBookingOpenInfo(eq(trainNo),bookingOpenRequestCaptor.capture());
+        assertEquals(bookingOpenRequest,bookingOpenRequestCaptor.getValue());
+
+        verify(seatInfoTrackerService).initSeatInfoTracker(eq(trainNo),bookingOpenRequestCaptor.capture());
+        assertEquals(bookingOpenRequest,bookingOpenRequestCaptor.getValue());
+
+
+        assertEquals(true,bookingOpenResponse.isBookingOpen());
+        assertEquals(trainNo,bookingOpenResponse.getTrainNo());
+        assertEquals(startDt,bookingOpenResponse.getStartDt());
+        assertEquals(endDt,bookingOpenResponse.getEndDt());
     }
 
     @Test
-    void getBookingOpenInfo() {
+    void testGetBookingOpenInfo() {
     }
-
-    @Test
-    void getAvailableSeatNumbers() {
-    }
-
 }
