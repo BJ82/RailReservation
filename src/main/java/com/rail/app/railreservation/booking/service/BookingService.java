@@ -218,7 +218,7 @@ public class BookingService {
 
             for(Booking bookingWithStatusWait:waitingList){
 
-                if(routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings)){
+                if(allBookings.isEmpty() || routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings)){
                     bookingToConfirm = bookingWithStatusWait;
                     break;
                 }
@@ -229,7 +229,6 @@ public class BookingService {
                 bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
                 logger.info("Changed Booking Status For PnrNo:{},From Waiting To Confirmed",bookingToConfirm.getPnr());
             }
-
 
         }
 
