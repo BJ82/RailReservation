@@ -13,15 +13,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class BookingOpenInfoTrackerService {
+public class BookingOpenInfoService {
 
     private final BookingOpenRepository bookingOpenRepo;
 
-    public BookingOpenInfoTrackerService(BookingOpenRepository bookingOpenRepo) {
+    public BookingOpenInfoService(BookingOpenRepository bookingOpenRepo) {
         this.bookingOpenRepo = bookingOpenRepo;
     }
 
-    public void initBookingOpenInfoTracker(int trainNo, BookingOpenRequest request){
+    public void addBookingOpenInfo(int trainNo, BookingOpenRequest request){
 
         bookingOpenRepo.save(new BookingOpen(trainNo, Utils.toLocalDate(request.getStartDt()),
                         Utils.toLocalDate(request.getEndDt()),true,
@@ -33,11 +33,16 @@ public class BookingOpenInfoTrackerService {
 
     public Optional<Boolean> isBookingOpen(BookingRequest request){
 
-        return bookingOpenRepo.isBookingOpen(request.getTrainNo(),Utils.toLocalDate(request.getStartDt()),
+        Optional<Boolean> isBookingOpenAsOptional = bookingOpenRepo.isBookingOpen(request.getTrainNo(),Utils.toLocalDate(request.getStartDt()),
                 Utils.toLocalDate(request.getEndDt()));
+
+        if(isBookingOpenAsOptional.get() == true)
+            return isBookingOpenAsOptional;
+
+        return Optional.empty();
     }
 
-    public List<BookingOpen> getBookingOpenByTrainNo(int trainNo){
+    public List<BookingOpen> getBookingOpenInfoByTrainNo(int trainNo){
 
         return bookingOpenRepo.findByTrainNo(trainNo);
     }

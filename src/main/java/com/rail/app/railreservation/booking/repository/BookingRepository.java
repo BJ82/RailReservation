@@ -52,7 +52,8 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
            "AND b.trainNo = :trainNo " +
            "AND b.journeyClass = :jrnyClass " +
            "AND b.startDt = :strtDt " +
-           "AND b.endDt = :endDt")
+           "AND b.endDt = :endDt " +
+           "AND b.seatNo != 0")
     List<Integer> findSeatNumbers(@Param("frm") String startFrom,@Param("to") String endAt,
                                      @Param("trainNo") int trainNo,@Param("strtDt") LocalDate strtDt,
                                      @Param("endDt") LocalDate endDt,
@@ -84,12 +85,9 @@ public interface BookingRepository extends JpaRepository<Booking,Integer> {
                                @Param("endDt") LocalDate endDt);
 
 
-    @Query("SELECT b FROM Booking b " +
+    @Query("SELECT b.bookingStatus FROM Booking b " +
            "WHERE b.pnr = :pnrNo")
-    Optional<Booking> findBookingstatus(@Param("pnrNo") int pnrNo);
-
-
-
+    Optional<BookingStatus> findBookingstatus(@Param("pnrNo") int pnrNo);
 
 
     @Query("SELECT b FROM Booking b " +

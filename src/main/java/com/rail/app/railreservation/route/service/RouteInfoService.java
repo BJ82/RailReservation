@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RouteInfoService {
@@ -104,6 +105,22 @@ public class RouteInfoService {
         List<String> stations = routeToCheck.getStations();
 
         return stations.contains(stn1) && stations.contains(stn2);
+
+    }
+
+    public List<Integer> getOverlappingRoutes(String src, String dest){
+
+        List<Route> routes = containsSrcOrDest(src,dest);
+
+        List<Route> overlappingRoutes = new ArrayList<>(routes);
+
+        for(Route route:overlappingRoutes){
+
+            if(route.getStations().getLast().equals(src) || route.getStations().getFirst().equals(dest))
+                routes.remove(route);
+        }
+
+        return routes.stream().map(r->r.getRouteID()).collect(Collectors.toList());
 
     }
 

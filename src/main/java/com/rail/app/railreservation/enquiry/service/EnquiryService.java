@@ -4,7 +4,9 @@ import com.rail.app.railreservation.booking.dto.BookingRequest;
 import com.rail.app.railreservation.booking.entity.Booking;
 import com.rail.app.railreservation.booking.service.BookingInfoTrackerService;
 import com.rail.app.railreservation.booking.service.BookingService;
+import com.rail.app.railreservation.booking.service.SeatNoService;
 import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
+import com.rail.app.railreservation.trainmanagement.service.TrainArrivalDateService;
 import com.rail.app.railreservation.util.Utils;
 import com.rail.app.railreservation.trainmanagement.entity.Train;
 import com.rail.app.railreservation.route.service.RouteInfoService;
@@ -36,14 +38,19 @@ public class EnquiryService {
     private final TrainInfoService trainInfoService;
     private final BookingInfoTrackerService bookingInfoTrackerService;
     private final BookingService bookingService;
+    private final TrainArrivalDateService trainArrivalDateService;
+
+    private final SeatNoService seatNoService;
     private final ModelMapper mapper;
 
     public EnquiryService(RouteInfoService routeInfoService, TrainInfoService trainInfoService, BookingInfoTrackerService bookingInfoTrackerService,
-                          BookingService bookingService, ModelMapper mapper) {
+                          BookingService bookingService, TrainArrivalDateService trainArrivalDateService, SeatNoService seatNoService, ModelMapper mapper) {
         this.routeInfoService = routeInfoService;
         this.trainInfoService = trainInfoService;
         this.bookingInfoTrackerService = bookingInfoTrackerService;
         this.bookingService = bookingService;
+        this.trainArrivalDateService = trainArrivalDateService;
+        this.seatNoService = seatNoService;
         this.mapper = mapper;
     }
 
@@ -155,7 +162,9 @@ public class EnquiryService {
                                                   new TrainNotFoundException("No Train Found Between Stations "+src+" And "+dest,src,dest));
 
        LocalDate startDate = Utils.toLocalDate(seatEnquiryRequest.getStartDt());
-       LocalDate dateOfArrival =  Utils.getArrivalDate(trainNo,src,startDate);
+
+       LocalDate dateOfArrival =  trainArrivalDateService.getArrivalDate(trainNo,src,startDate);
+
        LocalDate dateOfJourney = Utils.toLocalDate(seatEnquiryRequest.getDoj());
 
        if(!dateOfArrival.equals(dateOfJourney))
@@ -170,7 +179,7 @@ public class EnquiryService {
         seatEnquiryResponse.setTrainNo(trainNo);
 
         int seatsAvailable;
-        seatsAvailable = bookingService.getAvailableSeatNumbers(bookingRequest).size();
+        seatsAvailable = seatNoService.getAvailableSeatNumbers(bookingRequest).size();
         seatEnquiryResponse.setSeatsAvailable(seatsAvailable);
 
         return seatEnquiryResponse;
