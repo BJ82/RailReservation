@@ -35,8 +35,6 @@ public class BookingService {
 
     private final Set<Integer> seatNumbers;
 
-    private BookingStatus bookingStatus = BookingStatus.CONFIRMED;
-
     private final List<Integer> pnrs;
 
     private final TrainInfoService trainInfoService;
@@ -118,6 +116,7 @@ public class BookingService {
 
         int seatCount = seatInfoTrackerService.getCountOfConfirmedSeats(request);
         int seatNumber = 0;
+        BookingStatus bookingStatus = BookingStatus.CONFIRMED;
 
         int lastSeatNumber = 0;
         int i = 0;
