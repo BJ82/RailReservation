@@ -111,10 +111,6 @@ class BookingServiceTest {
     }
 
     @Test
-    void book() {
-    }
-
-    @Test
     void testInvalidBookingExceptionCausedByNonExistentTrain() throws InvalidBookingException, TimeTableNotFoundException, BookingNotOpenException {
 
 

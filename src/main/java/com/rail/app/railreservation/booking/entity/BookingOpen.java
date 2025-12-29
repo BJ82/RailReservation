@@ -8,9 +8,11 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(name="BookingOpen")
+
 
 @Getter
 @Setter
@@ -33,5 +35,17 @@ public class BookingOpen {
         this.endDt = endDt;
         this.isBookingOpen = isBookingOpen;
         this.timestamp = timestamp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        BookingOpen that = (BookingOpen) o;
+        return id == that.id && trainNo == that.trainNo && isBookingOpen == that.isBookingOpen && Objects.equals(startDt, that.startDt) && Objects.equals(endDt, that.endDt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, trainNo, startDt, endDt, isBookingOpen);
     }
 }
