@@ -1,14 +1,9 @@
 package com.rail.app.railreservation.booking.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rail.app.railreservation.booking.dto.BookedPassenger;
-import com.rail.app.railreservation.booking.dto.BookingRequest;
-import com.rail.app.railreservation.booking.dto.BookingResponse;
-import com.rail.app.railreservation.booking.dto.Passenger;
+import com.rail.app.railreservation.booking.dto.*;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.service.BookingService;
-import com.rail.app.railreservation.security.entity.Users;
-import com.rail.app.railreservation.security.role.Role;
 import com.rail.app.railreservation.security.service.UserService;
 import com.rail.app.railreservation.security.util.JwtUtil;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
@@ -35,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @WebMvcTest(BookingController.class)
 class BookingControllerTest {
@@ -59,6 +55,8 @@ class BookingControllerTest {
 
     private String jwt;
 
+    private int trainNo;
+
     @BeforeEach
     void setUp() {
 
@@ -72,18 +70,18 @@ class BookingControllerTest {
         passengers.add(new Passenger("Second Passenger",25,"F"));
         passengers.add(new Passenger("Third Passenger",26,"F"));
         jwt = "JwtForTest";
-
+        trainNo = 1;
         String from = "stn1";
         String to = "stn5";
         String doj = startDate.plusDays(1).format(pattern);
 
-        bookingRequest = new BookingRequest(1,"TRAIN1",startDate.format(pattern),
+        bookingRequest = new BookingRequest(trainNo,"TRAIN1",startDate.format(pattern),
                 endDate.format(pattern),from,to, JourneyClass.AC1,doj,passengers);
 
     }
 
     @Test
-    @WithMockUser(username = "bj", roles = {"ROLE.USER"})
+    @WithMockUser(username = "bj", roles = {"USER"})
     void testBookTicket() throws Exception {
 
         ModelMapper mapper = new ModelMapper();
@@ -119,8 +117,21 @@ class BookingControllerTest {
     }
 
     @Test
-    @Disabled
-    void testOpenBooking() {
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    void testOpenBooking() throws Exception {
+
+        BookingOpenRequest bookingOpenRequest = new BookingOpenRequest(startDate.format(pattern),endDate.format(pattern));
+        BookingOpenResponse bookingOpenResponse = new BookingOpenResponse(trainNo,startDate.format(pattern),
+                endDate.format(pattern),true);
+        when(bookingService.openBooking(trainNo,bookingOpenRequest)).thenReturn(bookingOpenResponse);
+
+        mockMvc.perform(post("/api/v1/trains/{trainNo}/bookings/open",trainNo)
+                        .header(HttpHeaders.AUTHORIZATION,"Bearer "+jwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(bookingOpenRequest))
+                        .with(csrf()))
+                .andExpect(status().isCreated());
+
     }
 
     @Test
