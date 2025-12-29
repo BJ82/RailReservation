@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rail.app.railreservation.booking.dto.*;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.service.BookingService;
+import com.rail.app.railreservation.security.config.SecurityConfig;
 import com.rail.app.railreservation.security.service.UserService;
 import com.rail.app.railreservation.security.util.JwtUtil;
 import com.rail.app.railreservation.trainmanagement.enums.JourneyClass;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -33,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 @WebMvcTest(BookingController.class)
+@Import(SecurityConfig.class)
 class BookingControllerTest {
 
     @MockitoBean
