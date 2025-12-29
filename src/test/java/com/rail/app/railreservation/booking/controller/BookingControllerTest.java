@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rail.app.railreservation.booking.dto.*;
 import com.rail.app.railreservation.booking.enums.BookingStatus;
 import com.rail.app.railreservation.booking.service.BookingService;
+import com.rail.app.railreservation.enquiry.exception.PnrNoIncorrectException;
 import com.rail.app.railreservation.security.config.SecurityConfig;
 import com.rail.app.railreservation.security.service.UserService;
 import com.rail.app.railreservation.security.util.JwtUtil;
@@ -30,7 +31,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
@@ -138,12 +139,34 @@ class BookingControllerTest {
     }
 
     @Test
-    @Disabled
-    void testIsBookingOpen() {
+    @WithMockUser(username = "bj", roles = {"USER"})
+    void testIsBookingOpen() throws Exception {
+
+        List<BookingOpenDate> bookingOpenDates =
+                List.of(new BookingOpenDate(startDate,endDate),
+                        new BookingOpenDate(startDate.plusDays(2),
+                                             endDate.plusDays(4)));
+
+        BookingOpenInfo bookingOpenInfo = new BookingOpenInfo(trainNo,bookingOpenDates);
+
+        when(bookingService.getBookingOpenInfo(trainNo)).thenReturn(bookingOpenInfo);
+
+        mockMvc.perform(get("/api/v1/trains/{trainNo}/bookings/status",trainNo)
+                        .header(HttpHeaders.AUTHORIZATION,"Bearer "+jwt))
+                        .andExpect(status().isOk());
     }
 
     @Test
-    @Disabled
-    void testCancelTicket() {
+    @WithMockUser(username = "bj", roles = {"USER"})
+    void testCancelTicket() throws Exception {
+        int pnrNo = 1;
+        when(bookingService.cancelBooking(pnrNo)).thenReturn("Deleted Booking For PnrNo:"+pnrNo);
+
+        mockMvc.perform(delete("/api/v1/bookings/{pnrNo}",pnrNo)
+                        .header(HttpHeaders.AUTHORIZATION,"Bearer "+jwt)
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+
     }
 }
