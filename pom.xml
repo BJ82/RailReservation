@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.rail.app</groupId>
-	<artifactId>RailReservation</artifactId>
+	<artifactId>PEARS</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>RailReservation</name>
-	<description>Online Rail Reservation Application</description>
+	<name>PEARS</name>
+	<description>Passenger Enquiry And Reservation System</description>
 	<url/>
 	<licenses>
 		<license/>
