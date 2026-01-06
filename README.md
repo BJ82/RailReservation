@@ -67,3 +67,7 @@ To process various types of enquiry request.
 3. Spring Security
 4. JJWT For JWT Token
 5. Postgres DB
+
+**Pls Note**
+**the Project is a Backend Service.**
+**Front End is Under Development.**
