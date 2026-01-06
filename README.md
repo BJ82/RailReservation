@@ -2,6 +2,8 @@
    
   ## PASSENGER ENQUIRY AND RESERVATION SYSTEM
 
+  ### INTRODUCTION
+
 A Webservice which provides rail passenger booking & enquiry services
 through REST APIs. Developed & Designed using Java, Spring Boot, Postgres DB 
 as a monolith application. Primarily the service is composed of following modules:
@@ -57,3 +59,11 @@ To process various types of enquiry request.
     Handles user login for existing user.
    Interacts with Spring Security Filter Chain
    To authenticate user & returns a JWT token.
+
+### TECHNOLOGIES USED
+
+1. Java 21
+2. Spring Boot 3.5.7
+3. Spring Security
+4. JJWT For JWT Token
+5. Postgres DB
