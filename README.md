@@ -15,7 +15,7 @@ as a monolith application. Primarily the service is composed of following module
   booking for a train. Along with booking & cancellation
   it provides booking open status for a train.
 
-  **How Ticket Booking Works?**
+   **How Ticket Booking Works?**
   
   Firstly the booking open status is checked
   in Booking Open table.If booking is opened
@@ -50,7 +50,7 @@ as a monolith application. Primarily the service is composed of following module
   above retrieved seat numbers and a corresponding entry
   is made into the Booking table.
 
-  **How Ticket Cancellation Works?**
+   **How Ticket Cancellation Works?**
   
   This is handled by BookingService.cancelBooking.
   If the booking to be cancelled has waiting status
