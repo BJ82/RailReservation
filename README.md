@@ -39,8 +39,11 @@ as a monolith application. Primarily the service is composed of following module
   Which would begin their journey after our journey ends.
 
   These two types of seat numbers is added to the primary
-  seat numbers(seatNums) and returned.
-
+  seat numbers(seatNums) and returned.Now For each passenger
+  in the booking request, seat number is alloted from the
+  above retrieved seat numbers and a corresponding entry
+  is made into the Booking table.
+  
 It interacts with these DB tables:
 
     1. Booking
