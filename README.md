@@ -18,20 +18,26 @@ as a monolith application. Primarily the service is composed of following module
   **How Ticket Booking Works?**
   
   Firstly the booking open status is checked
-  From Booking Open table.If booking is found
-  To be open then a seat number request is made
-  To SeatNoService which generates a seat number.
+  in Booking Open table.If booking is opened
+  then a seat number request is made to SeatNoService
+  Which generates a seat number.
 
-  To generate the seat number, SeatNoService first
-  Calculates the no of available seats by subtracting the 
-  LastAllotedSeatNo( obtained from SeatNoTracker table) from
-  The Total Seats.If seatsAvailable > 0 then below loop runs
+  To generate seat number, SeatNoService calculates
+  the available seats as below
+  
+  int seatsAvailable = totalNoOfSeats - seatInfoTrackerService.getLastAllocatedSeatNo(request);
+
+  Note that seat nos are generated in consecutive order.
+  So lstAllotedSeatNum is incremented by 1 and this new
+  Number is a seat no which can be alloted.
+
+  Set<Integer> seatNums;
   
   for(int i=1;i<=seatsAvailable;i++){
 
             seatNums.add(lstAllotedSeatNum.addAndGet(1));
   }
-
+  
   Now getSeatNosBefore is called to get seat nos
   Which would have their journey end before our journey starts.
 
