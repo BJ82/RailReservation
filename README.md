@@ -58,12 +58,14 @@ as a monolith application. Primarily the service is composed of following module
   If booking to cancel has confirmed status then waiting
   list is retrieved for corresponding train no, class and
   dates.This list is sorted(Ascending) as per the pnr no.
+  
   Now all bookings are retrieved for the seatNo whose booking
   Is to be cancelled.Note that a seat no can be shared by multiple
   Bookings if their routes dont conflict.This list is filtered to
-  contain bookings which are not to be deleted.The waiting list is
-  Then checked against the above bookings(have same seat no) for route
-  Compatible.If their routes dont conflict then that booking is changed
+  contain bookings which are not to be deleted.
+  
+  The waiting list is then checked against the above bookings(have same seat no)
+  for route compatibility.If their routes dont conflict then that booking is changed
   From waiting to confirm status and the corresponding entry in Booking
   Table is deleted.
 
