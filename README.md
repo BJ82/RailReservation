@@ -49,8 +49,41 @@ as a monolith application. Primarily the service is composed of following module
   in the booking request, seat number is alloted from the
   above retrieved seat numbers and a corresponding entry
   is made into the Booking table.
+
+  **How Ticket Cancellation Works?**
   
-It interacts with these DB tables:
+  This is handled by BookingService.cancelBooking.
+  If the booking to be cancelled has waiting status
+  Then corresponding entry in Booking table is deleted.
+  If booking to cancel has confirmed status then waiting
+  list is retrieved for corresponding train no, class and
+  dates.This list is sorted(Ascending) as per the pnr no.
+  Now all bookings are retrieved for the seatNo whose booking
+  Is to be cancelled.Note that a seat no can be shared by multiple
+  Bookings if their routes dont conflict.This list is filtered to
+  contain bookings which are not to be deleted.The waiting list is
+  Then checked against the above bookings(have same seat no) for route
+  Compatible.If their routes dont conflict then that booking is changed
+  From waiting to confirm status and the corresponding entry in Booking
+  Table is deleted.
+
+  Booking bookingToConfirm = null;
+
+   for(Booking bookingWithStatusWait:waitingList){
+
+       if(allBookings.isEmpty() || routeInfoService.isRouteCompatible(bookingWithStatusWait,allBookings)){
+             bookingToConfirm = bookingWithStatusWait;
+                 break;
+       }
+   }
+
+   if(bookingToConfirm != null){
+
+      bookingInfoTrackerService.changeBookingToConfirm(bookingToConfirm.getPnr(),seatNo);
+      logger.info("Changed Booking Status For PnrNo:{},From Waiting To Confirmed",bookingToConfirm.getPnr());
+   }
+   
+Booking Module interacts with below DB tables:
 
     1. Booking
     2. Booking Open
