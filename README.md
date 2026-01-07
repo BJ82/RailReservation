@@ -15,6 +15,32 @@ as a monolith application. Primarily the service is composed of following module
   booking for a train. Along with booking & cancellation
   it provides booking open status for a train.
 
+  **How Ticket Booking Works?**
+  
+  Firstly the booking open status is checked
+  From Booking Open table.If booking is found
+  To be open then a seat number request is made
+  To SeatNoService which generates a seat number.
+
+  To generate the seat number, SeatNoService first
+  Calculates the no of available seats by subtracting the 
+  LastAllotedSeatNo( obtained from SeatNoTracker table) from
+  The Total Seats.If seatsAvailable > 0 then below loop runs
+  
+  for(int i=1;i<=seatsAvailable;i++){
+
+            seatNums.add(lstAllotedSeatNum.addAndGet(1));
+  }
+
+  Now getSeatNosBefore is called to get seat nos
+  Which would have their journey end before our journey starts.
+
+  Similary getSeatNosAfter is called to get seat nos
+  Which would begin their journey after our journey ends.
+
+  These two types of seat numbers is added to the primary
+  seat numbers(seatNums) and returned.
+
 It interacts with these DB tables:
 
     1. Booking
