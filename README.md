@@ -148,8 +148,10 @@ The services interact with these DB tables
 5) <ins>***Login***<ins>
 
     Handles user login for existing user.
-   Interacts with Spring Security Filter Chain
-   To authenticate user & returns a JWT token.
+   Interacts with Spring Security Authentication
+   manager to authenticate user.
+   To generate JWT token, JWTUtils.generateToken
+   is used and returned back to verified user
 
 ### TECHNOLOGIES USED
 
