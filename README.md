@@ -155,6 +155,37 @@ The services interact with these DB tables
    To generate JWT token, JWTUtils.generateToken
    is used and returned back to verified user
 
+<ins>**Session Management**<ins>
+
+For every verified login, the session is managed
+by spring security filter chain.Initial login is
+handled by basic authentication filter & subsequent 
+requests are forwarded to custom filter JwtValidationFilter.
+
+**Below code for JwtValidationFilter.doFilter**
+
+ protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        String authHeader = request.getHeader("Authorization");
+
+        if(authHeader != null && authHeader.startsWith("Bearer ")){
+            String token = authHeader.substring(7);
+
+            if(jwtUtil.isJWTValid(token)
+                    && SecurityContextHolder.getContext().getAuthentication() == null){
+
+              UserDetails userDetails = userService.loadUserByUsername(jwtUtil.getUserName(token));
+
+              UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+              authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+              SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            }
+        }
+        filterChain.doFilter(request,response);
+    }
+
 ### TECHNOLOGIES USED
 
 1. Java 21
