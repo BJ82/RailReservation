@@ -87,10 +87,10 @@ as a monolith application. Primarily the service is composed of following module
    
 Booking Module interacts with below DB tables:
 
-    1. Booking
-    2. Booking Open
-    3. Seat Count
-    4. Seat No Tracker
+         1. Booking
+         2. Booking Open
+         3. Seat Count
+         4. Seat No Tracker
 
 2) <ins>***Enquiry***</ins>
 
@@ -116,9 +116,9 @@ Handled by EnquiryService.pnrEnquiry
 
 This Module Interacts with following modules 
 
-    1. Booking
-    2. Train Management
-    3. Route
+       1. Booking
+       2. Train Management
+       3. Route
 
 3) <ins>***Train-Management***</ins>
      
@@ -136,9 +136,9 @@ This Module Interacts with following modules
 
 The services interact with these DB tables
 
-  1. Train
-  2. Time Table
-  3. Timing
+     1. Train
+     2. Time Table
+     3. Timing
 
 4) <ins>***Sign-Up***</ins>
 
