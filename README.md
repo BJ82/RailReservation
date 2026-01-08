@@ -103,15 +103,15 @@ available trains that serve the given stations.
 Handled by EnquiryService.trainEnquiry
 
 **Train Enquiry by trainNo:** Returns train details
-For given train No.
+for given train No.
 Handled by EnquiryService.trainEnquiry
 
 **Seat Enquiry:** Returns seat availability(If Any)
-For given seat enquiry request.
+for given seat enquiry request.
 Handled by EnquiryService.seatEnquiry
 
 **Pnr Enquiry:** Returns booking status(Confirmed/Waiting)
-For given pnrNo.
+for given pnrNo.
 Handled by EnquiryService.pnrEnquiry
 
 This Module Interacts with following modules 
