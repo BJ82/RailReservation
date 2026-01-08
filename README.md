@@ -159,7 +159,7 @@ The services interact with these DB tables
 
 For every verified login, the session is managed
 by spring security filter chain.Initial login is
-handled by basic authentication filter & subsequent 
+handled by authentication manager & subsequent 
 requests are forwarded to custom filter JwtValidationFilter.
 
 **Below code for JwtValidationFilter.doFilter**
