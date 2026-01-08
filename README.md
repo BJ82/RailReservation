@@ -143,9 +143,11 @@ The services interact with these DB tables
 4) <ins>***Sign-Up***</ins>
 
     Handles new user signup(Both admin & user).
-   Interacts with only one DB table which is Users.
+   Interacts with only one DB table Users.
+   This Users extends UserDetails
+   which is provided by Spring Security.
 
-5) <ins>***Login***<ins>
+6) <ins>***Login***<ins>
 
     Handles user login for existing user.
    Interacts with Spring Security Authentication
