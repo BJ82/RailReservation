@@ -98,14 +98,27 @@ Processes various types of enquiries
 such as train enquiry(by stations/by train no),
 seat enquiry & pnr enquiry.
 
-Interacts with following modules 
+**Train Enquiry by stations:** Returns all 
+available trains that serve the given stations.
+Handled by EnquiryService.trainEnquiry
+
+**Train Enquiry by trainNo:** Returns train details
+For given train No.
+Handled by EnquiryService.trainEnquiry
+
+**Seat Enquiry:** Returns seat availability(If Any)
+For given seat enquiry request.
+Handled by EnquiryService.seatEnquiry
+
+**Pnr Enquiry:** Returns booking status(Confirmed/Waiting)
+For given pnrNo.
+Handled by EnquiryService.pnrEnquiry
+
+This Module Interacts with following modules 
 
     1. Booking
     2. Train Management
     3. Route
-
-To process various types of enquiry request.
-
 
 3) <ins>***Train-Management***</ins>
      
