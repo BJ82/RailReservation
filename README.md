@@ -123,14 +123,22 @@ This Module Interacts with following modules
 3) <ins>***Train-Management***</ins>
      
   Mostly used by admin to perform tasks
-  like adding new trains, retrieving all trains
-  And adding new timetable.
+  like add new train, retrieve all trains,
+  add new timetable, retrieve train time table.
 
-  Interacts with these DB tables
+  Below services, part of Train-Management Module
+  process & handle the above mentioned tasks
 
-    1. Train
-    2. Time Table
-    3. Timing
+  1. TrainService
+  2. TrainInfoService
+  3. TimeTableService
+  4. TrainArrivalDateService
+
+The services interact with these DB tables
+
+  1. Train
+  2. Time Table
+  3. Timing
 
 4) <ins>***Sign-Up***</ins>
 
