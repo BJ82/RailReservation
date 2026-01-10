@@ -4,9 +4,18 @@
 
   ### INTRODUCTION
 
-A Webservice which provides rail passenger booking & enquiry services
-through REST APIs. Developed & Designed using Java, Spring Boot, Postgres DB 
-as a monolith application. Primarily the service is composed of following modules:
+This webservice provides rail passenger booking, cancellation, enquiry & train management
+services through REST APIs. Developed as single monolith application. 
+
+### TECHNOLOGIES USED
+
+1. Java 21
+2. Spring Boot 3.5.7
+3. Spring Security
+4. JJWT For JWT Token
+5. Postgres DB
+
+Primarily the service is composed of following modules:
    
 1) <ins>***Booking***</ins>
 
@@ -186,13 +195,6 @@ requests are forwarded to custom filter JwtValidationFilter.
         filterChain.doFilter(request,response);
     }
 
-### TECHNOLOGIES USED
-
-1. Java 21
-2. Spring Boot 3.5.7
-3. Spring Security
-4. JJWT For JWT Token
-5. Postgres DB
 
 **Pls Note**
 **the Project is a Backend Service.**
